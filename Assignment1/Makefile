@@ -1,24 +1,58 @@
+# env variables
+
+export PATH:=./bin/:$(PATH)
+
+# Compilation options
+
 CC=gcc
-IDIR=head
-CFLAGS=-I$(IDIR) 
+
+# Directories
+
+CFLAGS=-I$(HEADERDIR) 
 SRCDIR=src
 OBJDIR=obj
 BINDIR=bin
 
-DEPS= head/hellomake.h
-OBJ = hellomake.o hellofunc.o 
-$(warning OBJ =  $(OBJ))
-LIBS=
-SRC=$(wildcard $(SRCDIR)/*.c)
-OBJ=$(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRC))
-$(warning SOURCES =  $(SRC))
-$(warning OBJECTS =  $(OBJ))
+HEADERDIR=$(SRCDIR)/head
+SRCCOMMONDIR=$(SRCDIR)/common
+SRCSERVDIR=$(SRCDIR)/server
+SRCCLIDIR=$(SRCDIR)/client
 
-$(BINDIR)/hellomake:$(OBJ)
+OBJCOMMONDIR=$(SRCDIR)/common
+OBJSERVDIR=$(OBJDIR)/server
+OBJCLIDIR=$(OBJDIR)/client
+
+# get library and header and common files 
+LIBS=
+HEADERS=$(wildcard $(HEADERDIR)/*.h)
+COMMON=$(wildcard $(COMMONDIR)/*.c)
+
+# get server src and obj files
+SERVSRC=$(wildcard $(SRCSERVDIR)/*.c)
+SERVOBJ=$(patsubst $(SRCSERVDIR)/%.c, $(OBJSERVDIR)/%.o, $(SERVSRC))
+
+# get client src and obj files
+CLISRC=$(wildcard $(SRCCLIDIR)/*.c)
+CLIOBJ=$(patsubst $(SRCCLIDIR)/%.c, $(OBJCLIDIR)/%.o, $(CLISRC))
+
+all : $(BINDIR)/myserver $(BINDIR)/myclient
+
+# make server binary
+server $(BINDIR)/myserver:$(SERVOBJ)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
+client $(OBJSERVDIR)/%.o: $(SRCSERVDIR)/%.c $(HEADERS) $(COMMON)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-clean:
-	rm -f $(OBJDIR)/*.o *.o 
+# make client binary
+
+$(BINDIR)/myclient:$(CLIOBJ)
+	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+
+$(OBJCLIDIR)/%.o: $(SRCCLIDIR)/%.c $(HEADERS)
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+# clean or clobber 
+
+clobber clean:
+	rm -f $(OBJSERVDIR)/*.o $(OBJCLIDIR)/*.o 
