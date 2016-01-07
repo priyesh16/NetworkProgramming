@@ -13,29 +13,25 @@ COMMONOBJDIR=$(SRCDIR)/common/obj
 # get library and header and common files 
 LIBS=
 HEADERS=$(wildcard $(HEADERDIR)/*.h)
-COMMON=$(wildcard $(COMMONOBJDIR)/*.o)
 
-# get client src and obj files
-CLISRC=$(wildcard *.c)
-CLIOBJ=$(patsubst %.c, $(OBJDIR)/%.o, $(CLISRC))
+COMMONSRC=$(wildcard *.c)
+COMMONOBJ=$(patsubst %.c, $(OBJDIR)/%.o, $(COMMONSRC))
 
-CFLAGS=-I$(HEADERDIR) 
 
-all: directories myclient
+CFLAGS=-I$(HEADERDIR) -I $(CURDIR)
+
+all: directories $(COMMONOBJ)
 
 directories: ${OBJDIR} 
 
 ${OBJDIR}: 
 	mkdir -p ${OBJDIR}
 
-# make client binary
-myclient:$(CLIOBJ) $(COMMON) 
-	$(CC) -g -o $@ $^ $(CFLAGS) $(LIBS)
-
+# make common objs 
 $(OBJDIR)/%.o: %.c $(HEADERS) 
-	$(CC) -g -c -o $@ $< $(CFLAGS)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
 # clean or clobber 
 
 clobber clean:
-	rm -f $(OBJDIR)/*.o myclient 
+	rm -f $(OBJDIR)/*.o 
