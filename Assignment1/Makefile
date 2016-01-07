@@ -1,58 +1,47 @@
-# env variables
-
-export PATH:=./bin/:$(PATH)
-
-# Compilation options
-
-CC=gcc
-
 # Directories
 
-CFLAGS=-I$(HEADERDIR) 
-SRCDIR=src
-OBJDIR=obj
 BINDIR=bin
+SRCDIR=src
+SERVDIR=$(SRCDIR)/server
+CLIDIR=$(SRCDIR)/client
+MAKE=make
+COPYFILES=$(BINDIR)/myserver $(BINDIR)/myclient
 
-HEADERDIR=$(SRCDIR)/head
-SRCCOMMONDIR=$(SRCDIR)/common
-SRCSERVDIR=$(SRCDIR)/server
-SRCCLIDIR=$(SRCDIR)/client
+install: all directories $(COPYFILES) 
 
-OBJCOMMONDIR=$(SRCDIR)/common
-OBJSERVDIR=$(OBJDIR)/server
-OBJCLIDIR=$(OBJDIR)/client
+directories: ${BINDIR}
 
-# get library and header and common files 
-LIBS=
-HEADERS=$(wildcard $(HEADERDIR)/*.h)
-COMMON=$(wildcard $(COMMONDIR)/*.c)
+${BINDIR}:
+	    mkdir -p ${BINDIR}
 
-# get server src and obj files
-SERVSRC=$(wildcard $(SRCSERVDIR)/*.c)
-SERVOBJ=$(patsubst $(SRCSERVDIR)/%.c, $(OBJSERVDIR)/%.o, $(SERVSRC))
+$(BINDIR)/myserver: src/server/myserver  
+$(BINDIR)/myclient: src/client/myclient
 
-# get client src and obj files
-CLISRC=$(wildcard $(SRCCLIDIR)/*.c)
-CLIOBJ=$(patsubst $(SRCCLIDIR)/%.c, $(OBJCLIDIR)/%.o, $(CLISRC))
+${BINDIR}/%:
+	cp -f $< $@
 
-all : $(BINDIR)/myserver $(BINDIR)/myclient
+# make all
+all: server client
 
-# make server binary
-server $(BINDIR)/myserver:$(SERVOBJ)
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+# make server binary and objs
+server:
+	$(MAKE) -C $(SERVDIR) all
 
-client $(OBJSERVDIR)/%.o: $(SRCSERVDIR)/%.c $(HEADERS) $(COMMON)
-	$(CC) -c -o $@ $< $(CFLAGS)
+# clean server binary and objs
+cleanserver:
+	$(MAKE) -C $(SERVDIR) clean 
+	
+# make client binary and objs
+client:
+	$(MAKE) -C $(CLIDIR) all 
 
-# make client binary
-
-$(BINDIR)/myclient:$(CLIOBJ)
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
-
-$(OBJCLIDIR)/%.o: $(SRCCLIDIR)/%.c $(HEADERS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+# clear client binary and objs
+cleanclient:
+	$(MAKE) -C $(CLIDIR) clean 
 
 # clean or clobber 
 
-clobber clean:
-	rm -f $(OBJSERVDIR)/*.o $(OBJCLIDIR)/*.o 
+clobber clean: cleanserver cleanclient cleanbin
+
+cleanbin:
+	rm -f $(BINDIR)/* 

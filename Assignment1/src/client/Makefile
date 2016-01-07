@@ -15,20 +15,21 @@ LIBS=
 HEADERS=$(wildcard $(HEADERDIR)/*.h)
 COMMON=$(wildcard $(COMMONOBJDIR)/*.o)
 
-# get server src and obj files
-SERVSRC=$(wildcard *.c)
-SERVOBJ=$(patsubst %.c, $(OBJDIR)/%.o, $(SERVSRC))
+# get client src and obj files
+CLISRC=$(wildcard *.c)
+CLIOBJ=$(patsubst %.c, $(OBJDIR)/%.o, $(CLISRC))
 
 CFLAGS=-I$(HEADERDIR) 
-all: directories myserver
+
+all: directories myclient
 
 directories: ${OBJDIR} 
 
 ${OBJDIR}: 
 	mkdir -p ${OBJDIR}
 
-# make server binary
-myserver:$(SERVOBJ) $(COMMON) 
+# make client binary
+myclient:$(CLIOBJ) $(COMMON) 
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
 $(OBJDIR)/%.o: %.c $(HEADERS) 
@@ -37,4 +38,4 @@ $(OBJDIR)/%.o: %.c $(HEADERS)
 # clean or clobber 
 
 clobber clean:
-	rm -f $(OBJDIR)/*.o myserver 
+	rm -f $(OBJDIR)/*.o myclient 
