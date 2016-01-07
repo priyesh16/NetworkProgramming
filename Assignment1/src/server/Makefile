@@ -8,6 +8,7 @@ SRCDIR=$(CURDIR)/../
 OBJDIR=obj
 
 HEADERDIR=$(SRCDIR)/head
+COMMONDIR=$(SRCDIR)/common
 COMMONOBJDIR=$(SRCDIR)/common/obj
 
 # get library and header and common files 
@@ -19,7 +20,7 @@ COMMON=$(wildcard $(COMMONOBJDIR)/*.o)
 SERVSRC=$(wildcard *.c)
 SERVOBJ=$(patsubst %.c, $(OBJDIR)/%.o, $(SERVSRC))
 
-CFLAGS=-I$(HEADERDIR) 
+CFLAGS=-I$(HEADERDIR) -I$(COMMONDIR)
 all: directories myserver
 
 directories: ${OBJDIR} 
@@ -29,10 +30,10 @@ ${OBJDIR}:
 
 # make server binary
 myserver:$(SERVOBJ) $(COMMON) 
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+	$(CC) -g -o $@ $^ $(CFLAGS) $(LIBS)
 
 $(OBJDIR)/%.o: %.c $(HEADERS) 
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) -g -c -o $@ $< $(CFLAGS)
 
 # clean or clobber 
 

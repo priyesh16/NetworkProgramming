@@ -4,6 +4,7 @@ BINDIR=bin
 SRCDIR=src
 SERVDIR=$(SRCDIR)/server
 CLIDIR=$(SRCDIR)/client
+COMMONDIR=$(SRCDIR)/common
 MAKE=make
 COPYFILES=$(BINDIR)/myserver $(BINDIR)/myclient
 
@@ -21,7 +22,15 @@ ${BINDIR}/%:
 	cp -f $< $@
 
 # make all
-all: server client
+all: common server client
+
+# make common objs
+common:
+	$(MAKE) -C $(COMMONDIR) all
+	
+# clear common objs
+cleancommon:
+	$(MAKE) -C $(COMMONDIR) clean 
 
 # make server binary and objs
 server:
@@ -41,7 +50,7 @@ cleanclient:
 
 # clean or clobber 
 
-clobber clean: cleanserver cleanclient cleanbin
+clobber clean: cleancommon cleanserver cleanclient cleanbin
 
 cleanbin:
 	rm -f $(BINDIR)/* 
