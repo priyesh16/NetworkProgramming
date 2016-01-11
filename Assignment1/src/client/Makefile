@@ -8,6 +8,7 @@ SRCDIR=$(CURDIR)/../
 OBJDIR=obj
 
 HEADERDIR=$(SRCDIR)/head
+COMMONDIR=$(SRCDIR)/common
 COMMONOBJDIR=$(SRCDIR)/common/obj
 
 # get library and header and common files 
@@ -19,7 +20,7 @@ COMMON=$(wildcard $(COMMONOBJDIR)/*.o)
 CLISRC=$(wildcard *.c)
 CLIOBJ=$(patsubst %.c, $(OBJDIR)/%.o, $(CLISRC))
 
-CFLAGS=-I$(HEADERDIR) 
+CFLAGS=-I$(HEADERDIR) -I$(COMMONDIR)
 
 all: directories myclient
 

@@ -1,17 +1,8 @@
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <arpa/inet.h> 
-#include <poll.h>
+#include <common.h>
 
-#define PROMPT ">"
+#define USAGE "./myclient <ip address> <port>"
 #define POLLTIMEOUT 10000
+#define EXITCMD "exit"
 
 int main(int argc, char *argv[]){
 	int sockfd = 0, n = 0;
@@ -25,7 +16,7 @@ int main(int argc, char *argv[]){
 	char *end = NULL;
 
 	if(argc != 3){
-		printf("\n Usage: %s <ip of server> \n",argv[0]);
+		usage(USAGE);
 		return 1;
 	}  
 
@@ -63,20 +54,23 @@ int main(int argc, char *argv[]){
 		fgets(cmd, sizeof(cmd), stdin);
 		end = strrchr(cmd, '\n');
 		if (end)
-			//printf("end %s", end);
 			*end = '\0';
 		if (!strlen(cmd))
 			continue;
-		printf("%s", cmd);
+
+		if(!strcmp(cmd, EXITCMD))
+			break;
+
 		snprintf(sendBuff, strlen(cmd) + 1, "%s", cmd);
 		n = write(sockfd, sendBuff, strlen(sendBuff));
 		ret = poll(pollst, 1, POLLTIMEOUT);
-		if (pollst[0].revents | POLLIN){	
+		if (pollst[0].revents | POLLIN) {	
 			n = read(sockfd, recvBuff, sizeof(recvBuff)-1);
 			recvBuff[n] = 0;
 		}
-		printf("\t\t\tServer Output : \n");
 		printf("%s \n", recvBuff);
 	} 
+
+	close(sockfd);
 	return 0;
 }
