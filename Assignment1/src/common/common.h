@@ -14,6 +14,7 @@
 #define MAXPORTNO 65535
 #define SUCCESS 0
 #define BASE 10
+#define PROMPT ">:$"
 
 int isipaddr(char *addr); 
 
