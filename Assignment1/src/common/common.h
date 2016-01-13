@@ -15,6 +15,8 @@
 #define SUCCESS 0
 #define BASE 10
 #define PROMPT ">:$"
+#define ACK " ack " 
+#define MAXDIGITS 5
 
 int isipaddr(char *addr); 
 

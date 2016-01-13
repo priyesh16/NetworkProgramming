@@ -17,24 +17,27 @@ int getlistensocket(unsigned long port) {
 	serv_addr.sin_port = htons(port); 
 
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1){
-		perror("socket():")	
+		perror("socket():");	
 	}
 
 	if (bind(sockfd, (struct sockaddr*)&serv_addr, 
 	    sizeof(serv_addr)) == -1) {
 		close(sockfd);
-		perror("bind():")	
+		perror("bind():");	
+		return errno; 
 	}
 
 	if (listen(sockfd, BACKLOG) == -1) { 
 		close(sockfd);
-		perror("listen():")	
+		perror("listen():");	
+		return errno;
 	}
 
 	if ((connfd = accept(sockfd, (struct sockaddr*)NULL,
-	    NULL)) == -1); 
+	    NULL)) == -1){
 		close(connfd);
-		perror("accept():")	
+		perror("accept():");	
+		return errno; 
 	}
 
 	close(sockfd);
