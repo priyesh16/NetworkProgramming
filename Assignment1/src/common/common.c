@@ -40,18 +40,13 @@ void usage(char *usage) {
 	printf("usage is %s \n", usage);  
 }
 
-ssize_t readall(int fd, void *data, size_t count) {
-	ssize_t bytesRead;
-	char * dataPtr = data;
-	size_t total = 0;
-
-	while (count) {
-		bytesRead = read(fd, dataPtr, count);
-/* we should check bytesRead for < 0 to return
-* errors properly, but this is just sample code! */
-		dataPtr += bytesRead;
-		count -= bytesRead;
-		total += bytesRead;
-	}
-	return total;
+/* send a termination ack so that the client knows when the 
+ * message has ended. The caller dups stdout to socket so we
+ * can print the ACK to stdout and it would get written to socket
+ */
+void sendack(void) {
+	fflush(NULL);
+	printf("%s", ACK);
+	fflush(NULL);
 }
+

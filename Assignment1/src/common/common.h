@@ -15,8 +15,12 @@
 #define SUCCESS 0
 #define BASE 10
 #define PROMPT ">:$"
-#define ACK " ack " 
+#define ACK "ack" 
 #define MAXDIGITS 5
+#define NOOUT "No Output \n"
+#define CMDLEN 100
+#define OUTLEN 65535
+#define EXITCMD "exit"
 
 int isipaddr(char *addr); 
 
