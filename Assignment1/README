@@ -1,0 +1,82 @@
+================================================================================
+Network Programming Assignment 1
+Name : Priyesh Vakayil
+================================================================================
+
+The client accepts standard UNIX commands from the user and sends it to the
+server. The server executes the command and sends it back to the client. The
+client recieves this outputs and presents it to the user. 
+
+================================================================================
+Makefile and Installation
+================================================================================
+
+This Makefile generates two binaries namely "myserver" and "myclient". These
+binaries are put in bin directory. The Makefile can generate both binaries
+together and clean up. The corresponding make commands are: 
+1) myserver : make server 
+2) myclient : make client 
+3) both : make all 
+4) clobber/clean : make clean
+
+================================================================================
+List of files
+================================================================================
+
+Below are names of the source files and their functionality: 
+lib/libunp.a :	This library is the library compiled from the "Unix Network
+				Programming" book, it contains basic socket functions that
+				handles errors well.  
+head/unp.h   :	This file contains function declarations for the above library
+src/client/Makefile :	client Makefile 
+src/client/client.c :	client program's source
+src/common/Makefile :	common files Makefile 
+src/common/common.h :	function declarations used by both server and client
+src/common/common.c :	function definition used by both server and client
+src/server/Makefile :	Server make file
+src/server/server.c	:	server program source
+src/server/servutil.c : utility functions used by the server 
+
+================================================================================
+Handling Errors
+================================================================================
+
+Wherever possible APIs from "unp.h" is used. These APIs are written to handle 
+errors gracefully. If the program uses a system call that doesn't have a 
+corresponding API in "unp.h", then errors are explicitly handled. The
+server code handles misbehaving clients, and doesn't crash no matter what the
+client tries to do. 
+
+================================================================================
+Internal Design 
+================================================================================
+
+The server client communication is as follows
+	Server													Client
+
+1) Starts a listening socket
+											2) Tries to connect to the server
+											3) Reads a command from the user, if
+												the command is "exit" then close
+												the client.
+											4) Sends the command to the server
+5) Reads the command, if the client 
+	has quit then listens for 
+	another a client (goto step 1).
+6) Executes the command, prints the 
+	command output on the server's 
+	stdout. 
+7) dup() stdout with socket fd. 
+	This causes the stdout output 
+	to be written to the socket, 
+	instead of stdout.
+8) Demarks the output with an ack 
+	message
+											9) Client reads until the ack
+												message
+										   10) Prints read command output to 
+												stdout of the client
+										   11) read and send the next command 
+												(goto step 2)  	 
+
+
