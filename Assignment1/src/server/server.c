@@ -43,13 +43,12 @@ int main(int argc, char **argv){
 		 */
 		printf(PROMPT);
 		fflush(stdout);
-		if((n = read(sockfd, cmd, sizeof(cmd) - 1)) <= 0){
-			close(sockfd);
-			perror("read:");
+		if((n = Readline(sockfd, cmd, sizeof(cmd) - 1)) == 0){
+			Close(sockfd);
 			nextclient = 1;
 			continue;
 		}
-		cmd[n] = '\0';
+		cmd[n-1] = '\0';
 		printf("%s\n", cmd);
 
 		/* if exit command was sent close connection with 
@@ -58,7 +57,7 @@ int main(int argc, char **argv){
 		n = strcmp(cmd, EXITCMD);
 		if (n == 0) {
 			nextclient = 1;
-			close(sockfd);
+			Close(sockfd);
 			continue;
 		}
 		
@@ -67,8 +66,8 @@ int main(int argc, char **argv){
 		 */
 		dummyfp = popen(cmd, "r");
 		if(!fgets(output, sizeof(output), dummyfp)){
-			write(sockfd, NOOUT, strlen(NOOUT)); 
-			write(sockfd, ACK, strlen(ACK)); 
+			Write(sockfd, NOOUT, strlen(NOOUT)); 
+			Write(sockfd, ACK, strlen(ACK)); 
 			continue;
 		}
 		pclose(dummyfp);
@@ -84,10 +83,10 @@ int main(int argc, char **argv){
 		system(cmd);
 		sendack();
 		dup2(saved_stdout, STDOUT_FILENO);
-		close(saved_stdout);
+		Close(saved_stdout);
 	}
 
 	/* close socket descriptor and exit */
-	close(sockfd);
+	Close(sockfd);
 	exit(SUCCESS);
 }

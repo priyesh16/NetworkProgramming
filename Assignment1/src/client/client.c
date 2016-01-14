@@ -44,13 +44,13 @@ int main(int argc, char *argv[]){
 		 * if user doesn't enter a command continue
 		 */
 		fgets(cmd, sizeof(cmd), stdin);
+		snprintf(buffer, strlen(cmd) + 1, "%s", cmd);
 		end = strrchr(cmd, '\n');
 		if (end)
 			*end = '\0';
 		if (!strlen(cmd))
 			continue;
-		snprintf(buffer, strlen(cmd) + 1, "%s", cmd);
-		n = write(sockfd, buffer, strlen(buffer));
+		n = Write(sockfd, buffer, strlen(buffer));
 
 		/* if user enters "exit" then quit, server on receiving
 		 * the "exit" command will close the socket and open a
@@ -64,11 +64,7 @@ int main(int argc, char *argv[]){
 		 * see an ack
 		 */
 		while (1) {	
-			n = read(sockfd, cmdoutput, sizeof(cmdoutput));
-			if (n <= 0) {
-				perror("read error:");
-				break;
-			}
+			n = Read(sockfd, cmdoutput, sizeof(cmdoutput));
 			cmdoutput[n] = '\0';
 			ackstr = cmdoutput + strlen(cmdoutput) - strlen(ACK); 
 			if(!strcmp(ackstr, ACK)) {
