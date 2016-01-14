@@ -22,10 +22,3 @@
 #define OUTLEN 65535
 #define EXITCMD "exit"
 
-int isipaddr(char *addr); 
-
-int isport(unsigned long port);
-
-int retrieveport(const char *portstr, unsigned long *portno);
-
-void usage(char *usage); 

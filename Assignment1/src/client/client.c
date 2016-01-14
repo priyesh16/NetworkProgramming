@@ -13,20 +13,16 @@ int main(int argc, char *argv[]){
 	char *ackstr;
 	char *end = NULL;
 
-	memset(&serv_addr, '0', sizeof(serv_addr)); 
-	memset(&buffer, '0', sizeof(buffer)); 
-	memset(&cmdoutput, '0', sizeof(cmdoutput)); 
-
+	bzero(&serv_addr, sizeof(serv_addr)); 
+	bzero(buffer, sizeof(buffer)); 
+	bzero(cmdoutput, sizeof(cmdoutput)); 
 
 	/* validate address and port provided by the user
 	 * and fill in socket structures accordingly
 	 */
-	if(argc != 3){
-		usage(USAGE);
-		return -1;
-	}  
-	if ((ret = retrieveport(argv[2], &port)) != 0) 
-		return ret;
+	validatearg(argc, 3, USAGE);
+	retrieveport(argv[2], &port);
+
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(port); 
 	if(inet_pton(AF_INET, argv[1], &serv_addr.sin_addr)<=0) {
@@ -35,15 +31,8 @@ int main(int argc, char *argv[]){
 	} 
 
 	/* open a socket and connect to the server */
-	if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
-		printf("\n Error : Could not create socket \n");
-		return 1;
-	} 
-	if(connect(sockfd, (struct sockaddr *)&serv_addr, 
-		    sizeof(serv_addr)) < 0) {
-		printf("\n Error : Connect Failed \n");
-		return 1;
-	} 
+	sockfd = Socket(AF_INET, SOCK_STREAM, 0);
+	Connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
 
 	/* get command from the user and send it to server,
 	 * then read command output from server and print it
@@ -93,6 +82,6 @@ int main(int argc, char *argv[]){
 			fflush(stdout);
 		}
 	} 
-	close(sockfd);
+	Close(sockfd);
 	return 0;
 }

@@ -15,8 +15,8 @@ directories: ${BINDIR}
 ${BINDIR}:
 	    mkdir -p ${BINDIR}
 
-$(BINDIR)/myserver: src/server/myserver  
-$(BINDIR)/myclient: src/client/myclient
+$(BINDIR)/myserver: src/server/server  
+$(BINDIR)/myclient: src/client/client
 
 ${BINDIR}/%:
 	cp -f $< $@

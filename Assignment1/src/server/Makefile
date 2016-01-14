@@ -5,14 +5,16 @@ CC=gcc
 # Directories
 CURDIR=$(shell pwd)
 SRCDIR=$(CURDIR)/../
+PARENTDIR=$(SRCDIR)/../
 OBJDIR=obj
 
-HEADERDIR=$(SRCDIR)/head
+HEADERDIR=$(PARENTDIR)/head
+LIBDIR=$(PARENTDIR)/lib
 COMMONDIR=$(SRCDIR)/common
 COMMONOBJDIR=$(SRCDIR)/common/obj
 
 # get library and header and common files 
-LIBS=
+LIBS=$(wildcard $(LIBDIR)/*.a)
 HEADERS=$(wildcard $(HEADERDIR)/*.h)
 COMMON=$(wildcard $(COMMONOBJDIR)/*.o)
 
@@ -21,7 +23,7 @@ SERVSRC=$(wildcard *.c)
 SERVOBJ=$(patsubst %.c, $(OBJDIR)/%.o, $(SERVSRC))
 
 CFLAGS=-I$(HEADERDIR) -I$(COMMONDIR)
-all: directories myserver
+all: directories server
 
 directories: ${OBJDIR} 
 
@@ -29,7 +31,7 @@ ${OBJDIR}:
 	mkdir -p ${OBJDIR}
 
 # make server binary
-myserver:$(SERVOBJ) $(COMMON) 
+server:$(SERVOBJ) $(COMMON) 
 	$(CC) -g -o $@ $^ $(CFLAGS) $(LIBS)
 
 $(OBJDIR)/%.o: %.c $(HEADERS) 
@@ -38,4 +40,4 @@ $(OBJDIR)/%.o: %.c $(HEADERS)
 # clean or clobber 
 
 clobber clean:
-	rm -f $(OBJDIR)/*.o myserver 
+	rm -f $(OBJDIR)/*.o server 

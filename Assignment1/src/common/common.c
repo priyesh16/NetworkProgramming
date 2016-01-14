@@ -5,11 +5,13 @@
 
 #include <common.h>
 
+/* check if ip address is valid */
 int isipaddr(char *addr) {
 	struct sockaddr_in sa;
 	return inet_pton(AF_INET, addr, &(sa.sin_addr));
 }
 
+/* check if the port number is valid */
 int isport(unsigned long port) {
 	int err = SUCCESS;
 
@@ -21,21 +23,21 @@ int isport(unsigned long port) {
 	return err; 
 }
 
-int retrieveport(const char* portstr, unsigned long *portno){
+/* given a string input of port number convert to an unsigned long */
+void retrieveport(const char* portstr, unsigned long *portno){
 	unsigned long port;
 	char *endptr;
 	int err = SUCCESS;
 
 	port = strtoul(portstr, &endptr, BASE);
 	if((err = isport(port)) != 0)
-		return err;
+		err_sys("%s \n ", "Invalid Port");
 	if (*endptr != '\0')
 		printf("Making use of port %lu from %s \n", port, portstr);
-
 	*portno = port;
-	return err;
 }
 
+/* print usage */
 void usage(char *usage) {
 	printf("usage is %s \n", usage);  
 }
@@ -48,5 +50,15 @@ void sendack(void) {
 	fflush(NULL);
 	printf("%s", ACK);
 	fflush(NULL);
+}
+
+/* validate the number of arguments and print useage
+ * if invalid
+ */
+void validatearg(int argc, int max, char *useage){
+	if (argc != max){
+		usage(useage);
+		err_sys("%s \n ", "Invalid No. of Arguments");
+	}
 }
 

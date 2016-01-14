@@ -11,35 +11,19 @@ int getlistensocket(unsigned long port) {
 	int ret;
 	struct sockaddr_in serv_addr; 
 
+	/* fill socket data structure given a port */
 	memset(&serv_addr, '0', sizeof(serv_addr));
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	serv_addr.sin_port = htons(port); 
 
-	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1){
-		perror("socket():");	
-	}
+	/* listen to client and return an accepted socket */
+	sockfd = Socket(AF_INET, SOCK_STREAM, 0);
+	Bind(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+	Listen(sockfd, BACKLOG);
+	connfd = Accept(sockfd, (struct sockaddr*)NULL, NULL);
 
-	if (bind(sockfd, (struct sockaddr*)&serv_addr, 
-	    sizeof(serv_addr)) == -1) {
-		close(sockfd);
-		perror("bind():");	
-		return errno; 
-	}
-
-	if (listen(sockfd, BACKLOG) == -1) { 
-		close(sockfd);
-		perror("listen():");	
-		return errno;
-	}
-
-	if ((connfd = accept(sockfd, (struct sockaddr*)NULL,
-	    NULL)) == -1){
-		close(connfd);
-		perror("accept():");	
-		return errno; 
-	}
-
+	/* close listening socket and return the client socket */
 	close(sockfd);
 	return connfd;
 }
