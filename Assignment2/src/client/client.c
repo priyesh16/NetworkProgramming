@@ -13,6 +13,9 @@ int main(int argc, char *argv[]){
 	int i;
 	const char *addrfilename = argv[1];
 
+	buffer = (char *)malloc(MAXBUFSIZE * sizeof(char));
+	bzero(buffer, MAXBUFSIZE * sizeof(char));
+
 	userservcnt = atoi(argv[2]);
 
 	buffer = (char *)malloc(MAXBUFSIZE * sizeof(char));
@@ -25,8 +28,8 @@ int main(int argc, char *argv[]){
 	get_ipaddr_list(addrfilename); 
 	check_serv_avail(addrfilename);
 
-	get_file_status(fileaddrsp[0].sockfd);
-
+	//get_file_status(fileaddrsp[0].sockfd);
+	send_chunk_info(fileaddrsp[0].sockfd, buffer, 40 , 0);
 	Close(sockfd);
 	return 0;
 }

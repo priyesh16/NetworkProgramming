@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 		 * then connect to next client.
 		 */
 		printf("line 3 \n");
-		send_file_status(sockfd, buffer);
+		get_chunk_info(sockfd, buffer);
 		break;
 
 
