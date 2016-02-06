@@ -28,9 +28,11 @@
 #define MAXLINES 10
 #define MAXLINELEN 15 
 #define OUTLEN 332
-#define MAXBUFSIZE 100
+#define MAXBUFSIZE 1000
 #define MAXFILENAMESIZE 50
-#define MEMERRSTR "Heap memory full..exiting"
+#define MEMERRSTR "Err: Heap memory full..exiting"
+
+#define FILEINVALIDSTR "> Err: Invalid File \n"
 
 typedef enum type_s {
 	FILESIZE,

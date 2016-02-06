@@ -1,11 +1,11 @@
 #include "cliutil.h"
 
-#define PROMPT "> Print the filename you want to download?(exit to quit)\n>"
-#define FILEINVALIDSTR "> Invalid File \n"
-int getipaddrfromfile(struct sockaddr addrs[],
-		const char *filename, unsigned int *servercnt) {
+#define PROMPTSTR "> Print the filename you want to download?(exit to quit)\n>"
+
+int getipaddrfromfile(const char *filename) {
 	int fd;
-	struct sockaddr_in *cursockaddrp;
+	fileaddress_t curfileaddr = {0};
+	struct sockaddr_in *cursockaddrp;	
 	int count = 0;
 	char line[MAXLINELEN];
 	int n;
@@ -13,11 +13,13 @@ int getipaddrfromfile(struct sockaddr addrs[],
 	char *portstr;
 	unsigned long int port;
 	struct in_addr ipaddr;
+	char address[30];
+	int i;
 
 	fd = Open(filename, O_RDONLY, 0);
-	
+	fileaddrsp = (fileaddress_t *)malloc(MAXLINES * sizeof(fileaddress_t));
 	while(count < MAXLINES) {
-		n = Readline(fd, line, MAXLINELEN); 
+		n = Readline(fd, line, MAXLINELEN);
 		if (line[0] ==  NEWLINE)
 			continue;
 		if (!n)
@@ -26,18 +28,20 @@ int getipaddrfromfile(struct sockaddr addrs[],
 		if (!strcmp(ipstr, LOCALHOSTSTR))
 			strcpy(ipstr, LOCALHOST);
 		portstr = strtok(NULL, " ");
-
-		cursockaddrp =(struct sockaddr_in *)(&addrs[count]); 
+		
+		cursockaddrp = &(curfileaddr.addr); 
 
 		/* Convert ip and port from string to respective types */
 		Inet_pton(AF_INET, ipstr, &(cursockaddrp->sin_addr));
-		retrieveport(portstr, &port);
 		cursockaddrp->sin_family = AF_INET;
+		retrieveport(portstr, &port);
 		cursockaddrp->sin_port = htons(port);
-
+        	inet_ntop(AF_INET, &(curfileaddr.addr.sin_addr), address, INET_ADDRSTRLEN);
+		memcpy(&fileaddrsp[count], &curfileaddr, sizeof(fileaddress_t));
 		count++;
+		
 	}
-	*servercnt = count; 
+	userservcnt = count; 
 	return SUCCESS;
 }
 
@@ -62,12 +66,12 @@ int getudpsocket(unsigned long port) {
 
 void getfilefromuser(int sockfd) {
 	char filename[MAXFILENAMESIZE];
-	char buffer[MAXFILENAMESIZE];
+	char buffer[MAXBUFSIZE];
 	char *end;
-	tlv_t bufstp = {0};
+	tlv_t *bufstp = NULL;
 
 	while(1) {
-		printf(PROMPT);
+		printf(PROMPTSTR);
 		/* get user input, remove the new line character and
 		 * if user doesn't enter a command continue
 		 */
@@ -78,18 +82,23 @@ void getfilefromuser(int sockfd) {
 			*end = '\0';
 		if (!strlen(filename))
 			continue;
-		Write(sockfd, filename, strlen(buffer));
+		if(!strcmp(filename, EXITCMD))
+			exit(1);
+		
+		Write(sockfd, filename, MAXFILENAMESIZE);
 		/* if user enters "exit" then quit, server on receiving
 		 * the "exit" command will close the socket and open a
 		 * new one for the next client.
 		 */
-		if(!strcmp(filename, EXITCMD))
-			exit(1);
 		Read(sockfd, buffer, MAXBUFSIZE);
 		retrievebuffer(buffer, &bufstp);
-		if (bufstp.buf_err == 0)
+printf("\n%d \t%d \t%d %s\t \n", bufstp->buf_type, bufstp->buf_len, 
+				bufstp->buf_err, bufstp->buf_error);
+		if (bufstp->buf_err == 0) 
 			break;
-		else
+		else {
 			printf(FILEINVALIDSTR);
+			continue;
+		}	
 	}
 }

@@ -78,32 +78,38 @@ int retrievebuffer(char *buffer, tlv_t **buffstpp) {
 	char *writer = buffer;
 	
 	buffstp = (tlv_t *)malloc(sizeof(tlv_t));
-	bzero(buffstp, sizeof(tlv_t)); 
 	if (buffstp == NULL)
 		return MEMERR;
-
-	buffstp->buf_type = FILESIZE;
+	bzero(buffstp, sizeof(tlv_t)); 
+		
+	buffstp->buf_chunk = (char *)malloc(MAXBUFSIZE * sizeof(char));
+	if (buffstp->buf_chunk == NULL)
+		return MEMERR;
+	bzero(buffstp->buf_chunk, MAXBUFSIZE * sizeof(char)); 
+	
+	buffstp->buf_type = atoi(writer);
 	writer += sizeof(type_t);
 	buffstp->buf_len = atoi(writer);
 	writer += sizeof(size_t);
+	buffstp->buf_err = atoi(writer);
 	writer += sizeof(int);
+	
 	switch (buffstp->buf_type) {
 		case FILESIZE:
 			buffstp->buf_fsize = atol(writer);
-	printf("\n%d \t%d \t%d \t%lu \n", buffstp->buf_type, buffstp->buf_len, 
+			printf("\n%d \t%d \t%d \t%lu \n", buffstp->buf_type, buffstp->buf_len, 
 				buffstp->buf_err, buffstp->buf_fsize);
 			break;
 		case FILECHUNK:
 			strcpy(buffstp->buf_chunk, writer);
-	printf("\n%d \t%d \t%d \t%s \n", buffstp->buf_type, buffstp->buf_len, 
-				buffstp->buf_err, buffstp->buf_fsize);
+				printf("\n%d \t%d \t%d \t%s \n", buffstp->buf_type, buffstp->buf_len, 
+				buffstp->buf_err, buffstp->buf_chunk);
 			break;
 		case FILEERROR:
 			strcpy(buffstp->buf_chunk, writer);
-	printf("\n%d \t%d \t%d \t%s \n", buffstp->buf_type, buffstp->buf_len, 
-				buffstp->buf_err, buffstp->buf_fsize);
+			printf("\n%d \t%d \t%d %s\t \n", buffstp->buf_type, buffstp->buf_len, 
+				buffstp->buf_err, buffstp->buf_error);
 			break;
-	
 	}
 
 	*buffstpp = buffstp;
@@ -120,24 +126,23 @@ void createbuffer(type_t type, void *val, char *buffer) {
 		case FILESIZE:
 			sprintf(writer, "%lu", sizeof(int));
 			writer += sizeof(size_t);
+			sprintf(writer	, "%d", 0);
 			writer += sizeof(int);
 			sprintf(writer, "%ld", *(off_t *)val);
-			printf("%s", writer);
 			break;
 		case FILECHUNK:
-			sprintf(writer, "%u", strlen((char *)val));
+			sprintf(writer, "%lu", strlen((char *)val));
 			writer += sizeof(size_t);
+			sprintf(writer	, "%d", 0);
 			writer += sizeof(int);
 			sprintf(writer, "%s", (char *)val);
-			printf("%s", writer);
 			break;
 		case FILEERROR:
 			sprintf(writer, "%lu", sizeof(int));
 			writer += sizeof(ssize_t);
-			sprintf(writer	, "%ld", *(int *)val);
+			sprintf(writer	, "%d", *(int *)val);
 			writer += sizeof(int);
 			sprintf(writer, "%s", INVALIDFILE);
-			printf("%s", writer);
 			break;
 	}
 }

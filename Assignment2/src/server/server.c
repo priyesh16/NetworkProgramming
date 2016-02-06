@@ -48,12 +48,13 @@ int main(int argc, char **argv) {
 		printf("%s", buffer);
 		err = stat(buffer, &st);
 		if (err != 0) {
-			createbuffer(FILEERROR, &err, buffer);
+			printf("4 %d \n", errno);
+			createbuffer(FILEERROR, &errno, buffer);
 		}
 		else 
 			createbuffer(FILESIZE, &(st.st_size), buffer); 
 		retrievebuffer(buffer, &bufstp); 
-		write(sockfd, buffer, MAXBUFSIZE);
+		Write(sockfd, buffer, MAXBUFSIZE);
 		break;
 		
 
