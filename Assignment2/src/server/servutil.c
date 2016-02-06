@@ -6,7 +6,7 @@
 #define BACKLOG 1
 
 /* return a listen socket bound on  given port */
-int getlistensocket(unsigned long port) {
+int get_listen_socket(unsigned long port) {
 	int sockfd = 0, connfd = 0;
 	int ret;
 	struct sockaddr_in serv_addr; 
@@ -28,7 +28,8 @@ int getlistensocket(unsigned long port) {
 	return connfd;
 }
 
-void getfilename(int sockfd, char *buffer) {
+void get_filename(int sockfd, char *buffer) {
 	Read(sockfd, buffer, MAXBUFSIZE);	
 }
+
 

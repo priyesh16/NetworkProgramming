@@ -12,14 +12,16 @@
 
 typedef struct fileaddress_s {
 	struct	sockaddr_in addr;
-	int 	available;     //flag to check if the server is available
+	int 	servavail;     //flag to check if the server is available.
+	int 	fileavail;     //flag to check if the server has the file to serve.
+	int	sockfd;
 }fileaddress_t;
 
 
-int userservcnt;
-int availservcnt;
-int fileservcnt;
-fileaddress_t *fileaddrsp;
+int userservcnt; // Number of servers the user wants the chunks from.
+int fileservcnt; // Number of servers in the file.
+int availservcnt; // Number of available servers.
+fileaddress_t *fileaddrsp; // Pointer to list of servers parsed out from the file.
 
 int getipaddressfromfile(struct sockaddr_in serv_addrs[]); 
 

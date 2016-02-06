@@ -13,18 +13,18 @@ int main(int argc, char **argv) {
 	off_t *sizep;
 	int nextclient = 1;
 	socklen_t len = sizeof(err);
-	struct stat st = {0};
 	tlv_t *bufstp;
 	char *buffer;
 	char buf[10];
 
 	buffer = (char *)malloc(MAXBUFSIZE * sizeof(char));
+	bzero(buffer, MAXBUFSIZE * sizeof(char));
 
 	/* validate and retrieve the port from input arguments
 	 * and open a socket bound to the port
 	 */
-	validatearg(argc, 2, USAGE);
-	retrieveport(argv[1], &port);
+	validate_arg(argc, 2, USAGE);
+	retrieve_port(argv[1], &port);
 
 	/*
 	 * connect to a client, accept commands from it
@@ -36,27 +36,18 @@ int main(int argc, char **argv) {
 		err = SUCCESS; 
 		/* connect to a new client */
 		if (nextclient == 1) {
-			sockfd = getlistensocket(port);
+			sockfd = get_listen_socket(port);
 			nextclient = 0;
 		}
-
+		
 		/* read command to be executed from the client, if
 		 * read fails for reasons like the client hit Ctrl+C
 		 * then connect to next client.
 		 */
-		getfilename(sockfd, buffer);
-		printf("%s", buffer);
-		err = stat(buffer, &st);
-		if (err != 0) {
-			printf("4 %d \n", errno);
-			createbuffer(FILEERROR, &errno, buffer);
-		}
-		else 
-			createbuffer(FILESIZE, &(st.st_size), buffer); 
-		retrievebuffer(buffer, &bufstp); 
-		Write(sockfd, buffer, MAXBUFSIZE);
+		printf("line 3 \n");
+		send_file_status(sockfd, buffer);
 		break;
-		
+
 
 
 		/* print command output on server side also */

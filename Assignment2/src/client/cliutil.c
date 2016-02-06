@@ -1,8 +1,7 @@
 #include "cliutil.h"
 
-#define PROMPTSTR "> Print the filename you want to download?(exit to quit)\n>"
 
-int getipaddrfromfile(const char *filename) {
+int get_ipaddr_list(const char *filename) {
 	int fd;
 	fileaddress_t curfileaddr = {0};
 	struct sockaddr_in *cursockaddrp;	
@@ -18,6 +17,7 @@ int getipaddrfromfile(const char *filename) {
 
 	fd = Open(filename, O_RDONLY, 0);
 	fileaddrsp = (fileaddress_t *)malloc(MAXLINES * sizeof(fileaddress_t));
+	bzero(fileaddrsp, MAXLINES * sizeof(fileaddress_t));
 	while(count < MAXLINES) {
 		n = Readline(fd, line, MAXLINELEN);
 		if (line[0] ==  NEWLINE)
@@ -34,20 +34,20 @@ int getipaddrfromfile(const char *filename) {
 		/* Convert ip and port from string to respective types */
 		Inet_pton(AF_INET, ipstr, &(cursockaddrp->sin_addr));
 		cursockaddrp->sin_family = AF_INET;
-		retrieveport(portstr, &port);
+		retrieve_port(portstr, &port);
 		cursockaddrp->sin_port = htons(port);
         	inet_ntop(AF_INET, &(curfileaddr.addr.sin_addr), address, INET_ADDRSTRLEN);
 		memcpy(&fileaddrsp[count], &curfileaddr, sizeof(fileaddress_t));
 		count++;
 		
 	}
-	userservcnt = count; 
+	fileservcnt = count; 
 	return SUCCESS;
 }
 
 
 /* return a listen socket bound on  given port */
-int getudpsocket(unsigned long port) {
+int get_udp_socket(unsigned long port) {
 	int sockfd = 0;
 	struct sockaddr_in serv_addr; 
 
@@ -64,41 +64,27 @@ int getudpsocket(unsigned long port) {
 }
 
 
-void getfilefromuser(int sockfd) {
-	char filename[MAXFILENAMESIZE];
-	char buffer[MAXBUFSIZE];
-	char *end;
-	tlv_t *bufstp = NULL;
 
-	while(1) {
-		printf(PROMPTSTR);
-		/* get user input, remove the new line character and
-		 * if user doesn't enter a command continue
-		 */
-		fgets(filename, MAXFILENAMESIZE, stdin);
-		snprintf(buffer, MAXFILENAMESIZE, "%s", filename);
-		end = strrchr(filename, '\n');
-		if (end)
-			*end = '\0';
-		if (!strlen(filename))
+
+
+void check_serv_avail(const char *filename) {
+	int sockfd;
+	int i = 0;
+	int err = SUCCESS;
+	char address[MAXADDRSIZE];
+	struct	sockaddr_in *addrp;
+	for (i = 0; i < fileservcnt; i++) {	
+	 	/* open a socket and connect to the server */
+		addrp = &(fileaddrsp[i].addr);
+		sockfd = Socket(AF_INET, SOCK_STREAM, 0);
+		err = connect(sockfd, addrp, sizeof(struct sockaddr));
+		inet_ntop(AF_INET, &(addrp->sin_addr), address, INET_ADDRSTRLEN);
+		if (err < 0) {			
+			printf("Error : Could not connect to address:port %s:%d \n", address, ntohs(addrp->sin_port));
+			fileaddrsp[i].servavail = 1;
 			continue;
-		if(!strcmp(filename, EXITCMD))
-			exit(1);
-		
-		Write(sockfd, filename, MAXFILENAMESIZE);
-		/* if user enters "exit" then quit, server on receiving
-		 * the "exit" command will close the socket and open a
-		 * new one for the next client.
-		 */
-		Read(sockfd, buffer, MAXBUFSIZE);
-		retrievebuffer(buffer, &bufstp);
-printf("\n%d \t%d \t%d %s\t \n", bufstp->buf_type, bufstp->buf_len, 
-				bufstp->buf_err, bufstp->buf_error);
-		if (bufstp->buf_err == 0) 
-			break;
-		else {
-			printf(FILEINVALIDSTR);
-			continue;
-		}	
+		}
+		printf("Success : Connected to address:port %s:%d \n", address, ntohs(addrp->sin_port));
+		fileaddrsp[i].sockfd = sockfd;	
 	}
 }

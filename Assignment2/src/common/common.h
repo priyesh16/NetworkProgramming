@@ -29,13 +29,16 @@
 #define MAXLINELEN 15 
 #define OUTLEN 332
 #define MAXBUFSIZE 1000
+#define MAXADDRSIZE 15
 #define MAXFILENAMESIZE 50
 #define MEMERRSTR "Err: Heap memory full..exiting"
 
 #define FILEINVALIDSTR "> Err: Invalid File \n"
 
+#define PROMPTSTR "> Print the filename you want to download?(exit to quit)\n>"
 typedef enum type_s {
 	FILESIZE,
+	CHUNKINFO,
 	FILECHUNK,
 	FILEERROR,
 }type_t;
@@ -44,18 +47,33 @@ typedef enum error_s {
 	MEMERR,
 }error_t;
 
+typedef struct chuckinfo_s {
+	unsigned long size;
+	unsigned long start_off;
+}chunkinfo_t;
+
+typedef struct filechunk_s {
+	unsigned long ident;
+	char *chunkdata;
+}filechunk_t;
+
+
 typedef struct tlv_s {
 	type_t buf_type;
 	size_t buf_len;
 	int    buf_err;
 	union {
 		off_t filesize; // For FILESIZE
-		char *filechunk; // For FILECHUNK
-		char *errorstr;
+		chunkinfo_t chunkinfo; // For CHUNKINFO
+		filechunk_t filechunk; // For FILECHUNK
+		char *errorstr; // For FILERROR
 	}bufval_t;
-	#define buf_fsize bufval_t.filesize
-	#define buf_chunk bufval_t.filechunk
-	#define buf_error bufval_t.errorstr
+	#define buf_fsize  bufval_t.filesize
+	#define buf_error  bufval_t.errorstr
+	#define buf_ident  bufval_t.filechunk.ident
+	#define buf_data   bufval_t.filechunk.chunkdata
+	#define buf_cksize bufval_t.chunkinfo.size
+	#define buf_offset bufval_t.chunkinfo.start_off
 }tlv_t;
 
 
@@ -65,7 +83,7 @@ void retrieveport(const char* portstr, unsigned long *portno);
 /* validate the number of arguments and print useage 
  *  * if invalid 
  *   */
-void validatearg(int argc, int max, char *useage);
+void validate_arg(int argc, int max, char *useage);
 	 
 /* check if ip address is valid */
 int isipaddr(char *addr); 
@@ -78,7 +96,7 @@ int isport(unsigned long port);
 void freeall();
 void myexit(const char *errstr);
 int retrievebuffer(char *buffer, tlv_t **buffstpp);
-void createbuffer(type_t type, void *val, char *buffer);
+void create_buffer(type_t type, void *val, char *buffer);
 
 
 #endif
