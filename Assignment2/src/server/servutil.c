@@ -32,4 +32,15 @@ void get_filename(int sockfd, char *buffer) {
 	Read(sockfd, buffer, MAXBUFSIZE);	
 }
 
-
+void get_chunk_info(int sockfd, char *buffer, chunkinfo_t *infop) {
+	int err = SUCCESS;
+	tlv_t *bufstp;
+	int n;
+	printf("get_ck_info \n");
+	bzero(buffer, MAXBUFSIZE);	
+	n = Read(sockfd, buffer, MAXBUFSIZE);
+	printf("Read %d", n);
+	retrieve_buffer(buffer, &bufstp);
+	infop->size = bufstp->buf_cksize;
+	infop->off  = bufstp->buf_offset;
+}

@@ -12,14 +12,12 @@ int main(int argc, char *argv[]){
 	char address[10];
 	int i;
 	const char *addrfilename = argv[1];
+	chunkinfo_t chunkinfo;
 
 	buffer = (char *)malloc(MAXBUFSIZE * sizeof(char));
 	bzero(buffer, MAXBUFSIZE * sizeof(char));
 
 	userservcnt = atoi(argv[2]);
-
-	buffer = (char *)malloc(MAXBUFSIZE * sizeof(char));
-	bzero(buffer, MAXBUFSIZE * sizeof(char)); 
 
 	/* validate address and port provided by the user
 	 * and fill in socket structures accordingly
@@ -28,8 +26,8 @@ int main(int argc, char *argv[]){
 	get_ipaddr_list(addrfilename); 
 	check_serv_avail(addrfilename);
 
-	//get_file_status(fileaddrsp[0].sockfd);
-	send_chunk_info(fileaddrsp[0].sockfd, buffer, 40 , 0);
+	get_file_status(0);
+	send_chunk_info(0, buffer, 39, 0);
 	Close(sockfd);
 	return 0;
 }

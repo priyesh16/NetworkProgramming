@@ -88,3 +88,60 @@ void check_serv_avail(const char *filename) {
 		fileaddrsp[i].sockfd = sockfd;	
 	}
 }
+
+
+
+void send_chunk_info(int serverno, char *buffer, int size, int offset) {
+	int err = SUCCESS;
+	chunkinfo_t info = {0};	
+	int sockfd = fileaddrsp[serverno].sockfd;
+	
+
+	info.size = size;
+	info.off = offset;
+	create_buffer(CHUNKINFO, &info, buffer);
+	Write(sockfd, buffer, MAXBUFSIZE);
+}
+
+
+void get_file_status(int serverno) {
+	char filename[MAXFILENAMESIZE];
+	char buffer[MAXBUFSIZE];
+	char *end;
+	tlv_t *bufstp = NULL;
+	int sockfd = fileaddrsp[serverno].sockfd;
+
+	while(1) {
+		printf(PROMPTSTR);
+		bzero(buffer, MAXBUFSIZE);
+		/* get user input, remove the new line character and
+		 * if user doesn't enter a command continue
+		 */
+		fgets(filename, MAXFILENAMESIZE, stdin);
+		snprintf(buffer, MAXFILENAMESIZE, "%s", filename);
+		end = strrchr(filename, '\n');
+		if (end)
+			*end = '\0';
+		if (!strlen(filename))
+			continue;
+		if(!strcmp(filename, EXITCMD))
+			exit(1);
+		
+		Write(sockfd, filename, MAXFILENAMESIZE);
+		/* if user enters "exit" then quit, server on receiving
+		 * the "exit" command will close the socket and open a
+		 * new one for the next client.
+		 */
+		Read(sockfd, buffer, MAXBUFSIZE);
+		retrieve_buffer(buffer, &bufstp);
+		printf("1 \n");
+		if (bufstp->buf_err == 0)
+			break;
+		else {
+			printf(FILEINVALIDSTR);
+			continue;
+		}	
+	}
+
+}
+

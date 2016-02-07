@@ -49,7 +49,7 @@ typedef enum error_s {
 
 typedef struct chuckinfo_s {
 	unsigned long size;
-	unsigned long start_off;
+	unsigned long off;
 }chunkinfo_t;
 
 typedef struct filechunk_s {
@@ -72,8 +72,9 @@ typedef struct tlv_s {
 	#define buf_error  bufval_t.errorstr
 	#define buf_ident  bufval_t.filechunk.ident
 	#define buf_data   bufval_t.filechunk.chunkdata
+	#define buf_ckinfo bufval_t.chunkinfo
 	#define buf_cksize bufval_t.chunkinfo.size
-	#define buf_offset bufval_t.chunkinfo.start_off
+	#define buf_offset bufval_t.chunkinfo.off
 }tlv_t;
 
 

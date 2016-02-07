@@ -92,6 +92,7 @@ int retrieve_buffer(char *buffer, tlv_t **buffstpp) {
 	printf("rb : %s \n", writer);	
 	buffstp->buf_err = atoi(writer);
 	writer += sizeof(int);
+	printf("rb : %d \n", buffstp->buf_type);	
 	
 	switch (buffstp->buf_type) {
 		case FILESIZE:
@@ -115,10 +116,12 @@ int retrieve_buffer(char *buffer, tlv_t **buffstpp) {
 				buffstp->buf_err, buffstp->buf_error);
 			break;
 		case CHUNKINFO:
+			printf("rb : %s \n", writer);
 			buffstp->buf_cksize = atol(writer);
 			printf("\n%d \t%ld \t%d \t%lu \n", buffstp->buf_type, buffstp->buf_len, 
 				buffstp->buf_err, buffstp->buf_cksize);
 			writer += sizeof(unsigned long);
+			printf("2 %s", writer);
 			buffstp->buf_offset = atol(writer);
 			printf("\n%d \t%ld \t%d \t%lu \n", buffstp->buf_type, buffstp->buf_len, 
 				buffstp->buf_err, buffstp->buf_offset);
@@ -127,26 +130,11 @@ int retrieve_buffer(char *buffer, tlv_t **buffstpp) {
 	}
 
 	*buffstpp = buffstp;
+	printf("rb : %s \n", "here");
 	return SUCCESS;
 }
 
-void get_chunk_info(int sockfd, char *buffer, chunkinfo_t *infop) {
-	int err = SUCCESS;
-	tlv_t *bufstp;
-	chunkinfo_t info = {0};	
-	Read(sockfd, buffer, MAXBUFSIZE);
-	retrieve_buffer(buffer, &bufstp);
-}
 
-
-void send_chunk_info(int sockfd, char *buffer, int size, int offset) {
-	int err = SUCCESS;
-	chunkinfo_t info = {0};	
-	info.size = size;
-	info.start_off = offset;
-	create_buffer(CHUNKINFO, &info, buffer);
-	Write(sockfd, buffer, MAXBUFSIZE);
-}
 
 void send_file_status(int sockfd, char *buffer) {
 	int err = SUCCESS;
@@ -203,51 +191,11 @@ void create_buffer(type_t type, void *val, char *buffer) {
 			sprintf(writer, "%ld", ((chunkinfo_t *)val)->size);
 			printf("cr : %s \n", writer);
 			writer += sizeof(unsigned long);
-			sprintf(writer, "%ld", ((chunkinfo_t *)val)->start_off);
+			sprintf(writer, "%ld", ((chunkinfo_t *)val)->off);
 			printf("cr : %s \n", writer);
 			writer += sizeof(unsigned long);
 			break;
 
-	}
-}
-
-void get_file_status(int sockfd) {
-	char filename[MAXFILENAMESIZE];
-	char buffer[MAXBUFSIZE];
-	char *end;
-	tlv_t *bufstp = NULL;
-
-	while(1) {
-		printf(PROMPTSTR);
-		bzero(buffer, MAXBUFSIZE);
-		/* get user input, remove the new line character and
-		 * if user doesn't enter a command continue
-		 */
-		fgets(filename, MAXFILENAMESIZE, stdin);
-		snprintf(buffer, MAXFILENAMESIZE, "%s", filename);
-		end = strrchr(filename, '\n');
-		if (end)
-			*end = '\0';
-		if (!strlen(filename))
-			continue;
-		if(!strcmp(filename, EXITCMD))
-			exit(1);
-		
-		Write(sockfd, filename, MAXFILENAMESIZE);
-		/* if user enters "exit" then quit, server on receiving
-		 * the "exit" command will close the socket and open a
-		 * new one for the next client.
-		 */
-		Read(sockfd, buffer, MAXBUFSIZE);
-		retrieve_buffer(buffer, &bufstp);
-		printf("\n%d \t%ld \t%d %s\t \n", bufstp->buf_type, bufstp->buf_len, 
-				bufstp->buf_err, bufstp->buf_error);
-		if (bufstp->buf_err == 0) 
-			break;
-		else {
-			printf(FILEINVALIDSTR);
-			continue;
-		}	
 	}
 }
 

@@ -16,6 +16,7 @@ int main(int argc, char **argv) {
 	tlv_t *bufstp;
 	char *buffer;
 	char buf[10];
+	chunkinfo_t chunkinfo;
 
 	buffer = (char *)malloc(MAXBUFSIZE * sizeof(char));
 	bzero(buffer, MAXBUFSIZE * sizeof(char));
@@ -45,11 +46,12 @@ int main(int argc, char **argv) {
 		 * then connect to next client.
 		 */
 		printf("line 3 \n");
-		get_chunk_info(sockfd, buffer);
+		send_file_status(sockfd, buffer);
+		printf("line 4 \n");
+		sleep(3);
+		get_chunk_info(sockfd, buffer, &chunkinfo);
+		printf("line 5 %d %d\n", chunkinfo.size, chunkinfo.off);
 		break;
-
-
-
 		/* print command output on server side also */
 
 		/* instead of writing output to stdout write 
@@ -59,7 +61,7 @@ int main(int argc, char **argv) {
 
 	/* close socket descriptor and exit */
 	Close(sockfd);
-	free(buffer);
-	free(bufstp);
+	//free(buffer);
+	//free(bufstp);
 	exit(SUCCESS);
 }
