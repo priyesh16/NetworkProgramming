@@ -21,7 +21,8 @@ typedef struct fileaddress_s {
 #define cksize chunkinfo.size 
 #define ckoff chunkinfo.off  
 
-
+long firstchunksize;
+long otherchunksize;
 int userservcnt; // Number of servers the user wants the chunks from.
 int fileservcnt; // Number of servers in the file.
 int availservcnt; // Number of available servers.
@@ -37,7 +38,19 @@ pthread_mutex_t lock;
 
 /* return a listen socket bound on  given port */
 int getudpsocket(unsigned long port); 
-
+void send_chunk_info(int serverno);	
 int getipaddrfromfile(const char *filename); 
-	   
+void get_file_data(int serverno);
+void calculate_chunk_size();
+void *thread_func(void *serverno);
+void get_file_status();
+void send_filename();
+void get_file_from_user();
+
+void get_ack(int sockfd, char *buffer);
+int get_ipaddr_list(const char *filename);
+void check_serv_avail();
+void Pthread_create(pthread_t *tid, const pthread_attr_t *attr,
+               void * (*func)(void *), void *arg);
+void Pthread_join(pthread_t tid, void **status);
 #endif

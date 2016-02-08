@@ -3,7 +3,7 @@
 
 int get_ipaddr_list(const char *filename) {
 	int fd;
-	fileaddress_t curfileaddr = {0};
+	fileaddress_t curfileaddr = {{0},{0},0};
 	struct sockaddr_in *cursockaddrp;	
 	int count = 0;
 	char line[MAXLINELEN];
@@ -11,37 +11,52 @@ int get_ipaddr_list(const char *filename) {
 	char *ipstr;
 	char *portstr;
 	unsigned long int port;
-	struct in_addr ipaddr;
 	char address[30];
-	int i;
-
+	int err = 0;
+	const char *errstr;
+	
 	fd = Open(filename, O_RDONLY, 0);
 	fileaddrsp = (fileaddress_t *)malloc(MAXLINES * sizeof(fileaddress_t));
 	bzero(fileaddrsp, MAXLINES * sizeof(fileaddress_t));
+
 	while(count < MAXLINES) {
+		bzero(address, sizeof(address));
+		bzero(line, sizeof(line));
 		n = Readline(fd, line, MAXLINELEN);
 		if (line[0] ==  NEWLINE)
 			continue;
 		if (!n)
 			break;
+		if (n < 7)
+			continue;
 		ipstr = strtok(line, " ");
 		if (!strcmp(ipstr, LOCALHOSTSTR))
 			strcpy(ipstr, LOCALHOST);
 		portstr = strtok(NULL, " ");
 		
 		cursockaddrp = &(curfileaddr.addr); 
-
 		/* Convert ip and port from string to respective types */
-		Inet_pton(AF_INET, ipstr, &(cursockaddrp->sin_addr));
+		err = inet_pton(AF_INET, ipstr, &(cursockaddrp->sin_addr));
+
+		if (err != 1) {
+			printf("Error : Invalid address %s\n", address);
+			continue;		
+		}
 		cursockaddrp->sin_family = AF_INET;
 		retrieve_port(portstr, &port);
 		cursockaddrp->sin_port = htons(port);
-        	inet_ntop(AF_INET, &(curfileaddr.addr.sin_addr), address, INET_ADDRSTRLEN);
+        	errstr = inet_ntop(AF_INET, &(curfileaddr.addr.sin_addr), address, INET_ADDRSTRLEN);
+
+		if (errstr == NULL) {
+			printf("Error : Invalid address %s\n", address);
+			continue;		
+		}
 		memcpy(&fileaddrsp[count], &curfileaddr, sizeof(fileaddress_t));
-		count++;
-		
+		count++;		
 	}
+	
 	fileservcnt = count++;
+	
 	return SUCCESS;
 }
 
@@ -63,6 +78,8 @@ int get_udp_socket(unsigned long port) {
 	return sockfd;
 }
 
+
+
 void check_serv_avail() {
 	int sockfd;
 	int i = 0;
@@ -70,11 +87,14 @@ void check_serv_avail() {
 	char address[MAXADDRSIZE];
 	int count = 0;
 	struct	sockaddr_in *addrp;
+	struct sockaddr *castaddrp;
+
 	for (i = 0; i < fileservcnt; i++) {	
 	 	/* open a socket and connect to the server */
 		addrp = &(fileaddrsp[i].addr);
+		castaddrp = (struct sockaddr *)addrp;
 		sockfd = Socket(AF_INET, SOCK_STREAM, 0);
-		err = connect(sockfd, addrp, sizeof(struct sockaddr));
+		err = connect(sockfd, castaddrp, sizeof(struct sockaddr));
 		inet_ntop(AF_INET, &(addrp->sin_addr), address, INET_ADDRSTRLEN);
 		if (err < 0) {			
 			printf("Error : Could not connect to address:port %s:%d \n", address, ntohs(addrp->sin_port));
@@ -84,39 +104,37 @@ void check_serv_avail() {
 		fileaddrsp[i].servavail = 1;
 		printf("Success : Connected to address:port %s:%d \n", address, ntohs(addrp->sin_port));
 		fileaddrsp[i].sockfd = sockfd;	
-		printf("check_serv %d \n", fileaddrsp[i].sockfd);		
 		count++;
 	}
 	availservcnt = count; 
 }
 
-
-
 void send_chunk_info(int serverno) {
-	int err = SUCCESS;
 	int sockfd = fileaddrsp[serverno].sockfd;
 	chunkinfo_t *infop = &(fileaddrsp[serverno].chunkinfo);
-	printf("send_chunk_info sockfd %d %d \n", serverno, fileaddrsp[serverno].sockfd);
-	printf("send_chunk_info %d %ld %ld \n", serverno, fileaddrsp[serverno].cksize, fileaddrsp[serverno].ckoff);
+
+	printf("\nThread %d writing from offset %ld till %ld \n", serverno, infop->off, infop->off + infop->size); 
 	create_buffer(CHUNKINFO, infop, buffer);
 	Write(sockfd, buffer, MAXBUFSIZE);
 }
 
 void send_query_info(int serverno) {
-	int err = SUCCESS;
 	int sockfd = fileaddrsp[serverno].sockfd;
 	chunkinfo_t *infop = &(fileaddrsp[serverno].chunkinfo);
-	printf("send_query_info sockfd %d %d \n", serverno, fileaddrsp[serverno].sockfd);
 
 	create_buffer(QUERYINFO, infop, buffer);
 	Write(sockfd, buffer, MAXBUFSIZE);
 }
 
+void get_ack(int sockfd, char *buffer) {
+	tlv_t *bufstp;
+	Read(sockfd, buffer, MAXBUFSIZE * sizeof(char));
+	retrieve_buffer(buffer, &bufstp);
+}
 
 void get_file_from_user() {
 	char buffer[MAXBUFSIZE];
 	char *end;
-	tlv_t *bufstp = NULL;
 	
 	while(1) {
 		printf(PROMPTSTR);
@@ -133,7 +151,6 @@ void get_file_from_user() {
 			continue;
 		if(!strcmp(filename, EXITCMD))
 			exit(1);
-		printf("getfilefromuser %s \n", filename);
 		break;
 	}
 }
@@ -150,7 +167,6 @@ void send_filename() {
 		sockfd = fileaddrsp[i].sockfd;
 		create_buffer(FILENAME, filename, buffer);
 		Write(sockfd, buffer, MAXFILENAMESIZE);
-		printf("sendfilename %s \n", filename);
 	}
 }
 
@@ -166,16 +182,13 @@ void get_file_status() {
 		if (tmpfileaddrp->servavail == 0)
 			continue;
 		sockfd	= tmpfileaddrp->sockfd;
+		
 		send_query_info(i);
-		printf("get_file_status 1 \n");
-		sleep(2);
+		sleep(1);
+		//get_ack(sockfd, buffer);
 		Read(sockfd, buffer, MAXBUFSIZE);
-		printf("get_file_status 2 \n");
-
 		retrieve_buffer(buffer, &bufstp);
 		
-		printf("getfilestatus: %ld \t %ld \n", bufstp->buf_cksize, bufstp->buf_offset);
-		printf("\nerror %d\n", bufstp->buf_err); 
 		if (bufstp->buf_err == 0) {
 			fileinforx = 1;
 			break;	 
@@ -187,10 +200,8 @@ void get_file_status() {
 	filesize = bufstp->buf_cksize;
 	filefd = Open(filename, O_CREAT|O_WRONLY|O_TRUNC, FILE_MODE);
 	ftruncate(filefd, filesize); 
-	printf("get_file_status \n");
 	fp = fdopen(filefd, "w");
 	fclose(fp);
-	printf("get_file_status \n");
 }
 
 #define MAXTXSIZE 10
@@ -204,7 +215,7 @@ void get_file_data(int serverno) {
 	char buf[MAXTXSIZE + 1];
 	int sockfd = fileaddrsp[serverno].sockfd;
 	
-	printf("getfiledata %d %ld %ld \n", serverno, infop->size, infop->off);
+	//printf("getfiledata %d %ld %ld \n", serverno, infop->size, infop->off);
 
     	
 	filefd = Open(filename, O_CREAT|O_WRONLY, FILE_MODE);
@@ -227,3 +238,65 @@ void get_file_data(int serverno) {
 	} while(totalsize >= 0);	
 	fclose(fp);
 }
+
+
+
+void calculate_chunk_size() {
+	long feasiblecnt = userservcnt;
+	int i;
+	int availcnt = 0;
+	fileaddress_t *tmpfileaddrp;
+	int servernoarr[MAXLINES];
+
+	if (pthread_mutex_init(&lock, NULL) != 0)
+    	{
+        	printf("\n mutex init failed\n");
+        	exit(1);
+    	}
+
+	if (availservcnt < userservcnt) {
+	        printf("Sorry only %d servers available \n", availservcnt);
+		feasiblecnt = availservcnt;
+	}
+	
+	if (feasiblecnt == 1) {
+		otherchunksize = 0;
+		firstchunksize = filesize;
+	}	
+	else {
+		otherchunksize = filesize/feasiblecnt;
+		firstchunksize = filesize - ((feasiblecnt - 1) * otherchunksize);
+	}	
+
+	for (i = 0; i < userservcnt; i++) {
+		tmpfileaddrp = &fileaddrsp[i];
+		if (tmpfileaddrp->servavail == 0)
+			continue;
+		tmpfileaddrp->cksize = otherchunksize;
+		tmpfileaddrp->ckoff  = firstchunksize + ((availcnt - 1) * otherchunksize); 
+		
+		if (availcnt == 0) {
+			tmpfileaddrp->cksize = firstchunksize;
+			tmpfileaddrp->ckoff = 0;
+		}
+		availcnt++;
+		servernoarr[i] = i;
+		Pthread_create(&tmpfileaddrp->thread, NULL, &thread_func, (&servernoarr[i]));
+	}
+	for (i = 0; i < userservcnt; i++) {
+		tmpfileaddrp = &fileaddrsp[i];
+		if (tmpfileaddrp->thread == 0)
+			continue;
+		Pthread_join(tmpfileaddrp->thread, NULL);				
+	}
+	pthread_mutex_destroy(&lock);
+}
+
+void *thread_func(void *servernop) {
+	int *serverno = (int *)servernop;
+
+	send_chunk_info(*serverno);
+	get_file_data(*serverno); 
+	return NULL;		
+}
+

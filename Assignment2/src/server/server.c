@@ -1,21 +1,12 @@
 #include "server.h"
 
 int main(int argc, char **argv) {
-	int ret = SUCCESS; 
-	int err = SUCCESS; 
 	unsigned long port;
 	int sockfd;
-	int saved_stdout;
-	FILE *dummyfp;
-	ssize_t n;
-	off_t *sizep;
 	int nextclient = 1;
-	socklen_t len = sizeof(err);
-	tlv_t *bufstp;
 	char *buffer;
 	chunkinfo_t chunkinfo;
 	type_t type; 
-	int junk = 0;
 
 	buffer = (char *)malloc(MAXBUFSIZE * sizeof(char));
 	bzero(buffer, MAXBUFSIZE * sizeof(char));
@@ -32,21 +23,14 @@ int main(int argc, char **argv) {
 	 */
 		
 	while(1){
-		len = sizeof(err);
-		err = SUCCESS;
-		junk++;
-		printf("\n junk %d", junk); 
-		if (junk > 3)
-			break;
 		/* connect to a new client */
 		if (nextclient == 1) {
 			sockfd = get_listen_socket(port);
 			nextclient = 0;
 		}
 		
-		/* read command to be executed from the client, if
-		 * read fails for reasons like the client hit Ctrl+C
-		 * then connect to next client.
+		/* Based on the type field of the packet header
+		 * handle the clients requests.
 		 */
 		type = get_type(sockfd, buffer);
 		if (type == FILENAME)
@@ -59,7 +43,7 @@ int main(int argc, char **argv) {
 
 	/* close socket descriptor and exit */
 	Close(sockfd);
-	//free(buffer);
-	//free(bufstp);
+	free(buffer);
+	serv_free_all();
 	exit(SUCCESS);
 }

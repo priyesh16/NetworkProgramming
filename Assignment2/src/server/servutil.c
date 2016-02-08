@@ -26,11 +26,19 @@ void send_file_data(int sockfd, chunkinfo_t *infop) {
 	} while(totalsize >= 0);	
 }
 
+void send_syn_ack(int sockfd, char *buffer) {
+	char ackstr[] = "ack";
+	
+	//printf("send_ack sockfd \n");
+
+	create_buffer(SENDACK, ackstr , buffer);
+	Write(sockfd, buffer, MAXBUFSIZE);
+}
+
 
 /* return a listen socket bound on  given port */
 int get_listen_socket(unsigned long port) {
 	int sockfd = 0, connfd = 0;
-	int ret;
 	struct sockaddr_in serv_addr; 
 
 	/* fill socket data structure given a port */
@@ -51,45 +59,48 @@ int get_listen_socket(unsigned long port) {
 }
 
 void get_chunk_info(int sockfd, char *buffer, chunkinfo_t *infop) {
-	int err = SUCCESS;
 	tlv_t *bufstp;
-	int n;
-	printf("get_ck_info \n");
+	
 	retrieve_buffer(buffer, &bufstp);
 	infop->size = bufstp->buf_cksize;
 	infop->off  = bufstp->buf_offset;
 	send_file_data(sockfd, infop);
 }
 
+
+/* This function mallocs a tlv_t structure, freeing
+ * of the structure should be taken care by the caller
+ */
+void serv_free_all() {
+}
+
 void get_filename(int sockfd, char *buffer) {
-	int err = SUCCESS;
-	struct stat st = {0};
 	tlv_t *buffstp;
 
 	retrieve_buffer(buffer, &buffstp);
 	strcpy(filename, buffstp->buf_fname);
-	printf("get_filename %s \n", filename);
+	//printf("get_filename %s \n", filename);
 }
 
 type_t get_type(int sockfd, char *buffer) {
-	int err = SUCCESS;
 	tlv_t *buffstp;
 
 	Read(sockfd, buffer, MAXBUFSIZE * sizeof(char));
 	retrieve_buffer(buffer, &buffstp);
-	printf("get_type %d \n", buffstp->buf_type);
+	//printf("get_type %d \n", buffstp->buf_type);
 	return buffstp->buf_type;
 }
 
 void send_file_status(int sockfd, char *buffer) {
 	int err = SUCCESS;
 	struct stat st = {0};
-	printf("send_file status %s\n", filename);
+	//printf("send_file status %s\n", filename);
 	err = stat(filename, &st);
 	if (err != 0)
 		create_buffer(FILEERROR, &errno, buffer);
 	else
 		create_buffer(FILESIZE, &(st.st_size), buffer); 
+	//send_syn_ack(sockfd, buffer);
 	Write(sockfd, buffer, MAXBUFSIZE);
 }
 

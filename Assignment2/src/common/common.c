@@ -97,13 +97,13 @@ int retrieve_buffer(char *buffer, tlv_t **buffstpp) {
 				return MEMERR;
 			bzero(buffstp->buf_fname, MAXBUFSIZE * sizeof(char)); 
 			strcpy(buffstp->buf_fname, writer);
-			printf("\nrb : %d \t%ld \t%d %s\t \n", buffstp->buf_type, buffstp->buf_len, 
-				buffstp->buf_err, buffstp->buf_fname);
+			//printf("\nrb : %d \t%ld \t%d %s\t \n", buffstp->buf_type, buffstp->buf_len, 
+			//	buffstp->buf_err, buffstp->buf_fname);
 			break;
 		case FILESIZE:
 			buffstp->buf_fsize = atol(writer);
-			printf("\nrb : %d \t%ld \t%d \t%lu \n", buffstp->buf_type, buffstp->buf_len, 
-				buffstp->buf_err, buffstp->buf_fsize);
+			//printf("\nrb : %d \t%ld \t%d \t%lu \n", buffstp->buf_type, buffstp->buf_len, 
+			//	buffstp->buf_err, buffstp->buf_fsize);
 			break;
 		case FILECHUNK:
 			buffstp->buf_data = (char *)malloc(MAXBUFSIZE * sizeof(char));
@@ -111,8 +111,8 @@ int retrieve_buffer(char *buffer, tlv_t **buffstpp) {
 				return MEMERR;
 			bzero(buffstp->buf_data, MAXBUFSIZE * sizeof(char)); 
 			strcpy(buffstp->buf_data, writer);
-				printf("\n rb %d \t%ld \t%d \t%s \n", buffstp->buf_type, buffstp->buf_len, 
-				buffstp->buf_err, buffstp->buf_data);
+			//printf("\n rb %d \t%ld \t%d \t%s \n", buffstp->buf_type, buffstp->buf_len, 
+			//	buffstp->buf_err, buffstp->buf_data);
 			break;
 		case FILEERROR:
 			buffstp->buf_error = (char *)malloc(MAXBUFSIZE * sizeof(char));
@@ -120,8 +120,8 @@ int retrieve_buffer(char *buffer, tlv_t **buffstpp) {
 				return MEMERR;
 			bzero(buffstp->buf_error, MAXBUFSIZE * sizeof(char)); 
 			strcpy(buffstp->buf_error, writer);
-			printf("\nrb : %d \t%ld \t%d %s\t \n", buffstp->buf_type, buffstp->buf_len, 
-				buffstp->buf_err, buffstp->buf_error);
+			//printf("\nrb : %d \t%ld \t%d %s\t \n", buffstp->buf_type, buffstp->buf_len, 
+			//	buffstp->buf_err, buffstp->buf_error);
 			break;
 		case QUERYINFO:
 			buffstp->buf_error = (char *)malloc(MAXBUFSIZE * sizeof(char));
@@ -130,17 +130,26 @@ int retrieve_buffer(char *buffer, tlv_t **buffstpp) {
 			bzero(buffstp->buf_error, MAXBUFSIZE * sizeof(char)); 
 
 			strcpy(buffstp->buf_error, writer);
-			printf("\nrb : %d \t%ld \t%d %s\t \n", buffstp->buf_type, buffstp->buf_len, 
-				buffstp->buf_err, buffstp->buf_error);
+			//printf("\nrb : %d \t%ld \t%d %s\t \n", buffstp->buf_type, buffstp->buf_len, 
+			//	buffstp->buf_err, buffstp->buf_error);
 			break;		
 		case CHUNKINFO:
 			buffstp->buf_cksize = atol(writer);
 			writer += sizeof(unsigned long);
 			buffstp->buf_offset = atol(writer);
-			printf("\nrb : %d \t%ld \t%d \t%lu \t%lu \n", buffstp->buf_type, buffstp->buf_len, 
-				buffstp->buf_err, buffstp->buf_offset, buffstp->buf_cksize);
+			//printf("\nrb : %d \t%ld \t%d \t%lu \t%lu \n", buffstp->buf_type, buffstp->buf_len, 
+			//	buffstp->buf_err, buffstp->buf_offset, buffstp->buf_cksize);
 			break;
-		
+		case SENDACK:
+			buffstp->buf_error = (char *)malloc(MAXBUFSIZE * sizeof(char));
+			if (buffstp->buf_error == NULL)
+				return MEMERR;
+			bzero(buffstp->buf_error, MAXBUFSIZE * sizeof(char)); 
+
+			strcpy(buffstp->buf_error, writer);
+			//printf("\nrb : %d \t%ld \t%d %s\t \n", buffstp->buf_type, buffstp->buf_len, 
+			//	buffstp->buf_err, buffstp->buf_error);
+			break;
 	}
 
 	*buffstpp = buffstp;
@@ -199,8 +208,15 @@ void create_buffer(type_t type, void *val, char *buffer) {
 			sprintf(writer, "%ld", ((chunkinfo_t *)val)->off);
 			writer += sizeof(unsigned long);
 			break;
+		case SENDACK:
+			sprintf(writer, "%lu", sizeof(int));
+			writer += sizeof(ssize_t);
+			sprintf(writer	, "%d", *(int *)val);
+			writer += sizeof(int);
+			sprintf(writer, "%s", INVALIDFILE);
+			break;	
 	}
-	printf("\n cb: %s\n", buffer);
+	//printf("\n cb: %s\n", buffer);
 }
 
 

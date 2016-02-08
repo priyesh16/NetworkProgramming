@@ -43,6 +43,7 @@ typedef enum type_s {
 	CHUNKINFO,
 	FILECHUNK,
 	FILEERROR,
+	SENDACK,
 }type_t;
 
 typedef enum error_s {
@@ -81,7 +82,6 @@ typedef struct tlv_s {
 	#define buf_fname  bufval_t.filename
 }tlv_t;
 
-void thread_func(int *);
 
 void retrieveport(const char* portstr, unsigned long *portno);
 
@@ -100,8 +100,8 @@ int isport(unsigned long port);
 
 void freeall();
 void myexit(const char *errstr);
-int retrievebuffer(char *buffer, tlv_t **buffstpp);
+int retrieve_buffer(char *buffer, tlv_t **buffstpp);
 void create_buffer(type_t type, void *val, char *buffer);
-
+void retrieve_port(const char* portstr, unsigned long *portno);
 
 #endif
