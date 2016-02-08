@@ -1,6 +1,4 @@
-#include <common.h>
-
-#define USAGE "\n ./myserver <port no (1-65535)> \n"
+#include "server.h"
 
 int main(int argc, char **argv) {
 	int ret = SUCCESS; 
@@ -15,8 +13,9 @@ int main(int argc, char **argv) {
 	socklen_t len = sizeof(err);
 	tlv_t *bufstp;
 	char *buffer;
-	char buf[10];
 	chunkinfo_t chunkinfo;
+	type_t type; 
+	int junk = 0;
 
 	buffer = (char *)malloc(MAXBUFSIZE * sizeof(char));
 	bzero(buffer, MAXBUFSIZE * sizeof(char));
@@ -34,7 +33,11 @@ int main(int argc, char **argv) {
 		
 	while(1){
 		len = sizeof(err);
-		err = SUCCESS; 
+		err = SUCCESS;
+		junk++;
+		printf("\n junk %d", junk); 
+		if (junk > 3)
+			break;
 		/* connect to a new client */
 		if (nextclient == 1) {
 			sockfd = get_listen_socket(port);
@@ -45,18 +48,13 @@ int main(int argc, char **argv) {
 		 * read fails for reasons like the client hit Ctrl+C
 		 * then connect to next client.
 		 */
-		printf("line 3 \n");
-		send_file_status(sockfd, buffer);
-		printf("line 4 \n");
-		sleep(3);
-		get_chunk_info(sockfd, buffer, &chunkinfo);
-		printf("line 5 %d %d\n", chunkinfo.size, chunkinfo.off);
-		break;
-		/* print command output on server side also */
-
-		/* instead of writing output to stdout write 
-		 * directly to socket and then send an ack
-		 */
+		type = get_type(sockfd, buffer);
+		if (type == FILENAME)
+			get_filename(sockfd, buffer);
+		if (type == QUERYINFO)
+			send_file_status(sockfd, buffer);
+		if (type == CHUNKINFO)
+			get_chunk_info(sockfd, buffer, &chunkinfo);
 	}
 
 	/* close socket descriptor and exit */

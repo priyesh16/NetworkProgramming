@@ -37,6 +37,8 @@
 
 #define PROMPTSTR "> Print the filename you want to download?(exit to quit)\n>"
 typedef enum type_s {
+	FILENAME,
+	QUERYINFO,
 	FILESIZE,
 	CHUNKINFO,
 	FILECHUNK,
@@ -67,17 +69,19 @@ typedef struct tlv_s {
 		chunkinfo_t chunkinfo; // For CHUNKINFO
 		filechunk_t filechunk; // For FILECHUNK
 		char *errorstr; // For FILERROR
+		char *filename; // For FILENAME
 	}bufval_t;
 	#define buf_fsize  bufval_t.filesize
 	#define buf_error  bufval_t.errorstr
 	#define buf_ident  bufval_t.filechunk.ident
 	#define buf_data   bufval_t.filechunk.chunkdata
-	#define buf_ckinfo bufval_t.chunkinfo
+	#define buf_ckinfo bufval_t.chunkinfo.size
 	#define buf_cksize bufval_t.chunkinfo.size
 	#define buf_offset bufval_t.chunkinfo.off
+	#define buf_fname  bufval_t.filename
 }tlv_t;
 
-
+void thread_func(int *);
 
 void retrieveport(const char* portstr, unsigned long *portno);
 

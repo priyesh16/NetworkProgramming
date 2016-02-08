@@ -41,7 +41,7 @@ int get_ipaddr_list(const char *filename) {
 		count++;
 		
 	}
-	fileservcnt = count; 
+	fileservcnt = count++;
 	return SUCCESS;
 }
 
@@ -63,15 +63,12 @@ int get_udp_socket(unsigned long port) {
 	return sockfd;
 }
 
-
-
-
-
-void check_serv_avail(const char *filename) {
+void check_serv_avail() {
 	int sockfd;
 	int i = 0;
 	int err = SUCCESS;
 	char address[MAXADDRSIZE];
+	int count = 0;
 	struct	sockaddr_in *addrp;
 	for (i = 0; i < fileservcnt; i++) {	
 	 	/* open a socket and connect to the server */
@@ -81,36 +78,46 @@ void check_serv_avail(const char *filename) {
 		inet_ntop(AF_INET, &(addrp->sin_addr), address, INET_ADDRSTRLEN);
 		if (err < 0) {			
 			printf("Error : Could not connect to address:port %s:%d \n", address, ntohs(addrp->sin_port));
-			fileaddrsp[i].servavail = 1;
+			fileaddrsp[i].servavail = 0;
 			continue;
 		}
+		fileaddrsp[i].servavail = 1;
 		printf("Success : Connected to address:port %s:%d \n", address, ntohs(addrp->sin_port));
 		fileaddrsp[i].sockfd = sockfd;	
+		printf("check_serv %d \n", fileaddrsp[i].sockfd);		
+		count++;
 	}
+	availservcnt = count; 
 }
 
 
 
-void send_chunk_info(int serverno, char *buffer, int size, int offset) {
+void send_chunk_info(int serverno) {
 	int err = SUCCESS;
-	chunkinfo_t info = {0};	
 	int sockfd = fileaddrsp[serverno].sockfd;
-	
+	chunkinfo_t *infop = &(fileaddrsp[serverno].chunkinfo);
+	printf("send_chunk_info sockfd %d %d \n", serverno, fileaddrsp[serverno].sockfd);
+	printf("send_chunk_info %d %ld %ld \n", serverno, fileaddrsp[serverno].cksize, fileaddrsp[serverno].ckoff);
+	create_buffer(CHUNKINFO, infop, buffer);
+	Write(sockfd, buffer, MAXBUFSIZE);
+}
 
-	info.size = size;
-	info.off = offset;
-	create_buffer(CHUNKINFO, &info, buffer);
+void send_query_info(int serverno) {
+	int err = SUCCESS;
+	int sockfd = fileaddrsp[serverno].sockfd;
+	chunkinfo_t *infop = &(fileaddrsp[serverno].chunkinfo);
+	printf("send_query_info sockfd %d %d \n", serverno, fileaddrsp[serverno].sockfd);
+
+	create_buffer(QUERYINFO, infop, buffer);
 	Write(sockfd, buffer, MAXBUFSIZE);
 }
 
 
-void get_file_status(int serverno) {
-	char filename[MAXFILENAMESIZE];
+void get_file_from_user() {
 	char buffer[MAXBUFSIZE];
 	char *end;
 	tlv_t *bufstp = NULL;
-	int sockfd = fileaddrsp[serverno].sockfd;
-
+	
 	while(1) {
 		printf(PROMPTSTR);
 		bzero(buffer, MAXBUFSIZE);
@@ -126,22 +133,97 @@ void get_file_status(int serverno) {
 			continue;
 		if(!strcmp(filename, EXITCMD))
 			exit(1);
-		
-		Write(sockfd, filename, MAXFILENAMESIZE);
-		/* if user enters "exit" then quit, server on receiving
-		 * the "exit" command will close the socket and open a
-		 * new one for the next client.
-		 */
-		Read(sockfd, buffer, MAXBUFSIZE);
-		retrieve_buffer(buffer, &bufstp);
-		printf("1 \n");
-		if (bufstp->buf_err == 0)
-			break;
-		else {
-			printf(FILEINVALIDSTR);
-			continue;
-		}	
+		printf("getfilefromuser %s \n", filename);
+		break;
 	}
-
 }
 
+void send_filename() {
+	int sockfd;
+	int i;
+	fileaddress_t *tmpfileaddrp;
+
+	for (i = 0; i < userservcnt; i++) {
+		tmpfileaddrp = &fileaddrsp[i];
+		if (tmpfileaddrp->servavail == 0)
+			continue;
+		sockfd = fileaddrsp[i].sockfd;
+		create_buffer(FILENAME, filename, buffer);
+		Write(sockfd, buffer, MAXFILENAMESIZE);
+		printf("sendfilename %s \n", filename);
+	}
+}
+
+void get_file_status() {
+	FILE *fp;
+	int sockfd; 
+	tlv_t *bufstp = NULL;
+	fileaddress_t *tmpfileaddrp;
+	int i = 0;
+	
+	for (i = 0; i < userservcnt; i++) {
+		tmpfileaddrp = &fileaddrsp[i];
+		if (tmpfileaddrp->servavail == 0)
+			continue;
+		sockfd	= tmpfileaddrp->sockfd;
+		send_query_info(i);
+		printf("get_file_status 1 \n");
+		sleep(2);
+		Read(sockfd, buffer, MAXBUFSIZE);
+		printf("get_file_status 2 \n");
+
+		retrieve_buffer(buffer, &bufstp);
+		
+		printf("getfilestatus: %ld \t %ld \n", bufstp->buf_cksize, bufstp->buf_offset);
+		printf("\nerror %d\n", bufstp->buf_err); 
+		if (bufstp->buf_err == 0) {
+			fileinforx = 1;
+			break;	 
+		}
+		else 
+			printf(FILEINVALIDSTR);
+			
+	}
+	filesize = bufstp->buf_cksize;
+	filefd = Open(filename, O_CREAT|O_WRONLY|O_TRUNC, FILE_MODE);
+	ftruncate(filefd, filesize); 
+	printf("get_file_status \n");
+	fp = fdopen(filefd, "w");
+	fclose(fp);
+	printf("get_file_status \n");
+}
+
+#define MAXTXSIZE 10
+void get_file_data(int serverno) {
+	FILE *fp;
+	size_t count = 0;
+	chunkinfo_t *infop = &(fileaddrsp[serverno].chunkinfo);
+	long totalsize = infop->size;
+	long seek = infop->off;
+	int i = 0;
+	char buf[MAXTXSIZE + 1];
+	int sockfd = fileaddrsp[serverno].sockfd;
+	
+	printf("getfiledata %d %ld %ld \n", serverno, infop->size, infop->off);
+
+    	
+	filefd = Open(filename, O_CREAT|O_WRONLY, FILE_MODE);
+		
+	fp = fdopen(filefd, "w");
+
+	pthread_mutex_lock(&lock);
+	fseek(fp, seek, SEEK_SET);
+
+	do {
+		if (totalsize - MAXTXSIZE < 0)
+			count = totalsize;
+		else
+			count = MAXTXSIZE;
+		Read(sockfd, buf, count); 	
+		Write(filefd, buf, count);
+		pthread_mutex_unlock(&lock);
+		totalsize -= MAXTXSIZE;
+		i++;
+	} while(totalsize >= 0);	
+	fclose(fp);
+}
