@@ -8,6 +8,7 @@
 #define NEWLINE '\n'
 #define LOCALHOST "127.0.0.1"
 #define LOCALHOSTSTR "localhost"
+#define FILEINVALIDSTR "\n> Err: Invalid File, try again\n"
 /* */
 
 typedef struct fileaddress_s {

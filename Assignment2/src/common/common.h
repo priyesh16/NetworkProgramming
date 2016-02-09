@@ -44,6 +44,7 @@ typedef enum type_s {
 	FILECHUNK,
 	FILEERROR,
 	SENDACK,
+	CLIENTCLOSE,
 }type_t;
 
 typedef enum error_s {
@@ -82,7 +83,7 @@ typedef struct tlv_s {
 	#define buf_fname  bufval_t.filename
 }tlv_t;
 
-
+void myfree(void *ptr);
 void retrieveport(const char* portstr, unsigned long *portno);
 
 /* validate the number of arguments and print useage 
@@ -95,8 +96,6 @@ int isipaddr(char *addr);
 
 /* check if the port number is valid */
 int isport(unsigned long port); 
-
-
 
 void freeall();
 void myexit(const char *errstr);

@@ -1,11 +1,13 @@
 #include <common.h>
 #include "cliutil.h"
 
-#define USAGE "./myclient <ip address> <port>"
+#define USAGE "./myclient <file name> <no of connections>"
 #define FILENAMESIZE 50
 
 int main(int argc, char *argv[]) {
 	const char *addrfilename = argv[1];
+	
+	validate_arg(argc, 3, USAGE);
 
 	buffer = (char *)malloc(MAXBUFSIZE * sizeof(char));
 	bzero(buffer, MAXBUFSIZE * sizeof(char));
@@ -15,9 +17,8 @@ int main(int argc, char *argv[]) {
 	/* validate address and port provided by the user
 	 * and fill in socket structures accordingly
 	 */
-	validate_arg(argc, 3, USAGE);
 	get_ipaddr_list(addrfilename); 
-	
+
 	/* check all servers that are available from the
 	 * list and update structures.
 	 */
@@ -36,6 +37,8 @@ int main(int argc, char *argv[]) {
 	 * the chunk size and offset required for each thread
 	 */ 
 	calculate_chunk_size();
+
+	myfree(buffer);
 	return 0;
 }
 

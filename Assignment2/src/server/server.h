@@ -16,5 +16,8 @@ void send_file_status(int sockfd, char *buffer);
 type_t get_type(int sockfd, char *buffer);
 void get_filename(int sockfd, char *buffer);
 void get_chunk_info(int sockfd, char *buffer, chunkinfo_t *infop);
-int get_listen_socket(unsigned long port);
 void serv_free_all();
+
+int create_socket(unsigned long port);
+int get_listen_socket(int sockfd);
+

@@ -66,6 +66,11 @@ void freeall() {
 
 }
 
+void myfree(void *ptr) {
+	if (ptr != NULL)
+		free(ptr);
+}
+
 void myexit(const char *errstr) {
 	printf("%s", errstr);
 	freeall();
@@ -93,7 +98,7 @@ int retrieve_buffer(char *buffer, tlv_t **buffstpp) {
 	switch (buffstp->buf_type) {
 		case FILENAME:
 			buffstp->buf_fname = (char *)malloc(MAXBUFSIZE * sizeof(char));
-			if (buffstp->buf_fname == NULL)
+				if (buffstp->buf_fname == NULL)
 				return MEMERR;
 			bzero(buffstp->buf_fname, MAXBUFSIZE * sizeof(char)); 
 			strcpy(buffstp->buf_fname, writer);

@@ -10,6 +10,7 @@ void send_file_data(int sockfd, chunkinfo_t *infop) {
 	int i = 0;
 	char buf[MAXTXSIZE + 1];
 	
+	printf("sending from offset %ld to %ld from file %s ...\n", seek, seek + totalsize, filename);
 	fd = Open(filename, O_RDONLY, FILE_MODE);
 	fp = fdopen(fd, "r");
 	fseek(fp, seek, SEEK_SET);	
@@ -37,8 +38,8 @@ void send_syn_ack(int sockfd, char *buffer) {
 
 
 /* return a listen socket bound on  given port */
-int get_listen_socket(unsigned long port) {
-	int sockfd = 0, connfd = 0;
+int create_socket(unsigned long port) {
+	int sockfd = 0;
 	struct sockaddr_in serv_addr; 
 
 	/* fill socket data structure given a port */
@@ -51,20 +52,27 @@ int get_listen_socket(unsigned long port) {
 	sockfd = Socket(AF_INET, SOCK_STREAM, 0);
 	Bind(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
 	Listen(sockfd, BACKLOG);
+	return sockfd;
+}
+
+int get_listen_socket(int sockfd) {
+	int connfd = 0;
 	connfd = Accept(sockfd, (struct sockaddr*)NULL, NULL);
 
 	/* close listening socket and return the client socket */
-	close(sockfd);
 	return connfd;
 }
 
 void get_chunk_info(int sockfd, char *buffer, chunkinfo_t *infop) {
 	tlv_t *bufstp;
 	
+	printf("getting chunk info ... \n");		
+
 	retrieve_buffer(buffer, &bufstp);
 	infop->size = bufstp->buf_cksize;
 	infop->off  = bufstp->buf_offset;
 	send_file_data(sockfd, infop);
+	myfree(bufstp);
 }
 
 
@@ -79,16 +87,25 @@ void get_filename(int sockfd, char *buffer) {
 
 	retrieve_buffer(buffer, &buffstp);
 	strcpy(filename, buffstp->buf_fname);
+	myfree(buffstp);
 	//printf("get_filename %s \n", filename);
 }
 
 type_t get_type(int sockfd, char *buffer) {
 	tlv_t *buffstp;
+	type_t type;
+	int n = 0;
 
-	Read(sockfd, buffer, MAXBUFSIZE * sizeof(char));
+	n = read(sockfd, buffer, MAXBUFSIZE * sizeof(char));
+
+	if (n <= 0) {
+		return CLIENTCLOSE;
+	}
 	retrieve_buffer(buffer, &buffstp);
-	//printf("get_type %d \n", buffstp->buf_type);
-	return buffstp->buf_type;
+	type = buffstp->buf_type;
+	printf("get_type got type %d \n", buffstp->buf_type);
+	myfree(buffstp);
+	return type;
 }
 
 void send_file_status(int sockfd, char *buffer) {
@@ -99,7 +116,8 @@ void send_file_status(int sockfd, char *buffer) {
 	if (err != 0)
 		create_buffer(FILEERROR, &errno, buffer);
 	else
-		create_buffer(FILESIZE, &(st.st_size), buffer); 
+		create_buffer(FILESIZE, &(st.st_size), buffer);
+	printf("send_file_status: size %ld\n", st.st_size);
 	//send_syn_ack(sockfd, buffer);
 	Write(sockfd, buffer, MAXBUFSIZE);
 }
