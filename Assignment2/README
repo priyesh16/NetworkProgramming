@@ -3,9 +3,8 @@ Network Programming Assignment 1
 Name : Priyesh Vakayil
 ================================================================================
 
-The client accepts standard UNIX commands from the user and sends it to the
-server. The server executes the command and sends it back to the client. The
-client recieves this outputs and presents it to the user. 
+The client connects to multiple servers and fetches a file from the servers 
+simultaneously by spawning multiple threads.
 
 ================================================================================
 Makefile and Installation
@@ -24,23 +23,131 @@ There is also a shell script to make and install. Execute ./run to let the
 script do the installation automatically
 
 ================================================================================
-List of files
+Internal Design 
 ================================================================================
 
-Below are names of the source files and their functionality: 
-lib/libunp.a :	This library is the library compiled from the "Unix Network
-				Programming" book, it contains basic socket functions that
-				handles errors well.  
-head/unp.h   :	This file contains function declarations for the above library
-src/client/Makefile :	client Makefile 
-src/client/client.c :	client program's source
-src/common/Makefile :	common files Makefile 
-src/common/common.h :	function declarations used by both server and client
-src/common/common.c :	function definition used by both server and client
-src/server/Makefile :	Server make file
-src/server/server.c	:	server program source
-src/server/servutil.c : utility functions used by the server 
+The server and client transfers packets with a packet header inspired from the 
+TFTP protocol header.
 
+The header structure looks like this:
+
+	|| TYPE || LENGTH || VALUE ||
+
+Based on the type the value format changes.
+The main types are declared as an enum type_t as:
+
+FILENAME	- client sends requested filename to server	- send_filename()
+QUERYINFO	- client queries file size from server		- send_query_info()
+CHUNKINFO	- client sends file attributes like offset/size	- send_chunk_info()
+FILESIZE	- server sends the size of the requested file	- send_file_status()
+FILECHUNK	- server sends data from the file		- send_file_data()
+FILEERROR	- When sending an error in the requested file	- send_file_status() 
+SENDACK		- When sending an ack to each other		- send_syn_ack()
+
+Server Design :
+
+The server reads the packet header from clients and based on types handles them.
+The three services the server provides are:
+1) getting filename from a client
+2) sending file size to a client
+3) sending file data based on clients request of offset and size
+
+The packet header is stored in the following structure :
+
+typedef struct tlv_s {
+	type_t buf_type;
+	size_t buf_len;
+	int    buf_err;
+	union {
+		off_t filesize; // For FILESIZE
+		chunkinfo_t chunkinfo; // For CHUNKINFO
+		filechunk_t filechunk; // For FILECHUNK
+		char *errorstr; // For FILERROR
+		char *filename; // For FILENAME
+	}bufval_t;
+}tlv_t;
+
+Client Design :
+
+Client follows the following state machine :
+1) Validate address and port provided by the user. 
+2) It maintains a list of available servers.
+3) Gets filename from user and send it to all available servers.
+4) Get file status from first available server
+5) Calculate number of threads to be created and the chunk size 
+	and offset required for each thread
+6) Spawn the threads and write to a file.
+
+================================================================================
+Testcases :
+================================================================================
+ 
+4 servers run:
+$ ./server 3456
+$ ./server 7453
+$ ./server 3452
+
+MyLaptop:$cat server-info.text 
+12.23.45.1 4566
+127.0.0.1 3456
+127.0.0.1 7451
+127.0.0.1 7252
+localhost 3452
+1.2.345.3 
+
+MyLaptop:$./client server-info.text 4
+Error : Invalid address 
+Connecting to available servers...(connect might take 1 sec) 
+Error : Could not connect to address:port 12.23.45.1:456 
+Success : Connected to address:port 127.0.0.1:3456 
+Success : Connected to address:port 127.0.0.1:7451 
+Success : Connected to address:port 127.0.0.1:7252 
+Success : Connected to address:port 127.0.0.1:3452 
+> Print the filename you want to download?(exit to quit)
+>aaa
+sending filename ... 
+getting file status ... 
+sending chunkinfo ... 
+
+Thread 1 writing from offset 0 till 22 
+
+Thread 2 writing from offset 22 till 44 
+
+Thread 3 writing from offset 44 till 66 
+
+Thread 4 writing from offset 66 till 88 
+MyLaptop:$diff aaa ../server/aaa
+MyLaptop:$
+
+
+MyLaptop:$./server 7252
+get_type got type 0 
+get_type got type 3 
+getting chunk info ... 
+sending from offset 44 to 66 from file aaa ...
+
+MyLaptop:$./server 3456
+get_type got type 0 
+get_type got type 1 
+send_file_status: size 88
+get_type got type 3 
+getting chunk info ... 
+sending from offset 0 to 22 from file aaa ...
+
+MyLaptop:$./server 7451
+get_type got type 0 
+get_type got type 3 
+getting chunk info ... 
+sending from offset 22 to 44 from file aaa ...
+
+MyLaptop:$./server 3452
+get_type got type 0 
+get_type got type 3 
+getting chunk info ... 
+sending from offset 66 to 88 from file aaa ...
+
+
+ 
 ================================================================================
 Handling Errors
 ================================================================================
@@ -51,36 +158,39 @@ corresponding API in "unp.h", then errors are explicitly handled. The
 server code handles misbehaving clients, and doesn't crash no matter what the
 client tries to do. 
 
+***
+Due to lack of time there are some error conditions not taken care of. Known bugs
+are listed in the "Known Bugs" section
+***
+
 ================================================================================
-Internal Design 
+Known Bugs
+================================================================================
+1) Didn't run enough testcases with different serv-info.text files. Could be bugs
+in them
+2) Once while testing, file open failed for a server that was supposed to send a 
+specific file portion, since the open failed that chunk of the file was not 
+transmitted. This caused a difference in the file recieved by the client and
+file on the server. After that I was never able to replicate this issue.
+
+================================================================================
+List of files
 ================================================================================
 
-The server client communication is as follows
-	Server													Client
-
-1) Starts a listening socket
-											2) Tries to connect to the server
-											3) Reads a command from the user, if
-												the command is "exit" then close
-												the client.
-											4) Sends the command to the server
-5) Reads the command, if the client 
-	has quit then listens for 
-	another a client (goto step 1).
-6) Executes the command, prints the 
-	command output on the server's 
-	stdout. 
-7) dup() stdout with socket fd. 
-	This causes the stdout output 
-	to be written to the socket, 
-	instead of stdout.
-8) Demarks the output with an ack 
-	message
-											9) Client reads until the ack
-												message
-										   10) Prints read command output to 
-												stdout of the client
-										   11) read and send the next command 
-												(goto step 2)  	 
-
+Below are names of the source files and their functionality: 
+lib/libunp.a :	This library is the library compiled from the "Unix Network
+				Programming" book, it contains basic socket functions that
+				handles errors well.  
+head/unp.h   :	This file contains function declarations for the above library
+src/client/Makefile   :	client Makefile 
+src/client/client.c   :	client program's source
+src/client/cliutil.c  : utility functions used by the client
+src/client/cliutil.h  : client utility header file.
+src/common/Makefile   :	common files Makefile 
+src/common/common.h   :	function declarations used by both server and client
+src/common/common.c   :	function definition used by both server and client
+src/server/Makefile   :	Server make file
+src/server/server.c   :	server program source
+src/server/servutil.c : utility functions used by the server 
+src/server/servutil.h : server utility header file 
 
