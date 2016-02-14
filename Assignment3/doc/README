@@ -3,8 +3,7 @@ Network Programming Assignment 1
 Name : Priyesh Vakayil
 ================================================================================
 
-The client connects to multiple servers and fetches a file from the servers 
-simultaneously by spawning multiple threads.
+The client connects to multiple servers and fetches a file from the servers simultaneously by spawning multiple threads.
 
 ================================================================================
 Makefile and Installation
@@ -19,15 +18,13 @@ together and clean up. The corresponding make commands are:
 4) clobber/clean : make clean
 5) install	: make all then install into bin directory
 
-There is also a shell script to make and install. Execute ./run to let the
-script do the installation automatically
+There is also a shell script to make and install. Execute ./run to let the script do the installation automatically
 
 ================================================================================
 Internal Design 
 ================================================================================
 
-The server and client transfers packets with a packet header inspired from the 
-TFTP protocol header.
+The server and client transfers packets with a packet header inspired from the TFTP protocol header.
 
 The header structure looks like this:
 
@@ -172,7 +169,8 @@ in them
 specific file portion, since the open failed that chunk of the file was not 
 transmitted. This caused a difference in the file recieved by the client and
 file on the server. After that I was never able to replicate this issue.
-
+3) Once while testing, I noticed that if I give just one server as argument to
+the client then it hangs. Again after that I was never able to replicate this issue.
 ================================================================================
 List of files
 ================================================================================

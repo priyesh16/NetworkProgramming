@@ -1,0 +1,5 @@
+#!/bin/bash -x
+
+export PATH=$PATH:`pwd`/bin
+make clean
+make install
