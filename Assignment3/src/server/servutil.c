@@ -47,7 +47,10 @@ void send_file_data() {
 	unsigned long i = 1;
 	char data[MAXTXSIZE + 1];
 	char *writer;
-	
+	struct sockaddr_in *destaddr_inp; 
+	char address[20];
+	short port;
+
 	printf("sending from offset %ld to %ld from file %s ...\n", seek, seek + totalsize, filename);
 	fd = Open(filename, O_RDONLY, FILE_MODE);
 	fp = fdopen(fd, "r");
@@ -63,34 +66,38 @@ void send_file_data() {
 			count = MAXTXSIZE;
 
 		Read(fd, data, count);
-		printf("****************************\n");
-		printf("read data \n %s \n", data);
-		printf("****************************\n");
+		//printf("****************************\n");
+		//printf("read data \n %s \n", data);
+		//printf("****************************\n");
 		
 		add_packet_ident(i, data);
 		start = end;
 		if (count != MAXTXSIZE)
-			end = totalsize;
+			end = seek + totalsize;
 		else
 			end = seek + (i * count);
-printf("****************************\n");
-		printf("sending packet %ld from %ld to %ld ...\n", i, start, end);
-
-		printf("\n  %s \t", writer);
+		//printf("****************************\n");
+		
+		//printf("\n  %s \t", writer);
 		writer += sizeof(type_t);
-		printf("%s \t", writer);
+		//printf("%s \t", writer);
 		writer += sizeof(size_t);
-		printf("%s \t", writer);
+		//printf("%s \t", writer);
 		writer += sizeof(int);
-		printf("%s \t", writer);
+		//printf("%s \t", writer);
 		writer += sizeof(unsigned long);
-		printf("%s \n", writer);
-printf("****************************\n");
+		//printf("%s \n", writer);
+		//printf("****************************\n");
 				
 		Sendto(sockfd, buffer, PACKETSIZE, SENDFLAG, destaddrgp, SOCKADDRSZ);
+		destaddr_inp = (struct sockaddr_in *)destaddrgp;
+		port = destaddr_inp->sin_port;
+		inet_ntop(AF_INET, &(destaddr_inp->sin_addr), address, INET_ADDRSTRLEN);
+		printf("sent packet %ld from %ld to %ld to %s:%u...\n", i, start, end, address, port);
 		leftover -= MAXTXSIZE;
 		i++;
 	} while(leftover >= 0);	
+	printf("****************************\n");
 }
 
 
@@ -143,14 +150,31 @@ type_t get_type() {
 	int n = 0;
 	struct sockaddr dst_addr = {0};
 	socklen_t size = sizeof(dst_addr);
-	
-	n = recvfrom(sockfd, buffer, MAXBUFSIZE, RECVFLAG, &dst_addr, &size);
+	fd_set readfd;
+	struct timeval tv;
+	int maxfd = sockfd + 1;
+	char address[20];
+	int port;
+	struct sockaddr_in *destaddr_inp;
+
+	FD_ZERO(&readfd);
+	FD_SET(sockfd, &readfd);
+	tv.tv_sec = 3;
+	tv.tv_usec = 0;
+	Select(maxfd, &readfd, NULL, NULL, &tv);
+
+	if (FD_ISSET(sockfd, &readfd))
+		n = recvfrom(sockfd, buffer, MAXBUFSIZE, RECVFLAG, &dst_addr, &size);
 	if (n <= 0) 
 		return CLIENTCLOSE;
 	memcpy (destaddrgp, &dst_addr, sizeof(struct sockaddr));
+	destaddr_inp = (struct sockaddr_in *)destaddrgp;
+	port = destaddr_inp->sin_port;
+	inet_ntop(AF_INET, &(destaddr_inp->sin_addr), address, INET_ADDRSTRLEN);
+
 	retrieve_buffer(buffer, &buffstp);
 	type = buffstp->buf_type;
-	printf("got type %d ...\n", buffstp->buf_type);
+	printf("got type %d from address %s:%d...\n", buffstp->buf_type, address, port);
 	myfree(buffstp);
 	return type;
 }

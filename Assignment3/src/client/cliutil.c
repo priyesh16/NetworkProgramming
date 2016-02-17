@@ -99,11 +99,11 @@ void check_serv_avail() {
 	 	/* open a socket and connect to the server */
 		addrp = &(fileaddrsp[i].addr);
 		castaddrp = (struct sockaddr *)addrp;
+		inet_ntop(AF_INET, &(addrp->sin_addr), address, INET_ADDRSTRLEN);
+
 		send_ack(sockfd, buffer, castaddrp);
 		err = get_ack(sockfd, buffer);
-		printf("ack or not : %d \n", err);
-		inet_ntop(AF_INET, &(addrp->sin_addr), address, INET_ADDRSTRLEN);
-		if (err == 0) {			
+		if (err == 1) {			
 			printf("Error : Could not connect to address:port %s:%d \n", address, ntohs(addrp->sin_port));
 			fileaddrsp[i].servavail = 0;
 			continue;
@@ -135,10 +135,20 @@ void send_query_info(int serverno) {
 	int sockfd = fileaddrsp[serverno].sockfd;
 	struct sockaddr *destaddr = (struct sockaddr *)&(fileaddrsp[serverno].addr);
 	chunkinfo_t *infop = &(fileaddrsp[serverno].chunkinfo);
+	struct sockaddr_in *destaddr_inp= (struct sockaddr_in *)destaddr;
+	unsigned long port = htons(destaddr_inp->sin_port);
+	char address[20];
 
-	printf("sending chunkinfo ... \n");		
+
+	inet_ntop(AF_INET, &(destaddr_inp->sin_addr), address, INET_ADDRSTRLEN);
+		
+	
+
+	//printf("sending chunkinfo ... \n");		
 	create_buffer(QUERYINFO, infop, buffer);
 	Sendto(sockfd, buffer, MAXBUFSIZE, SENDFLAG, destaddr, SOCKADDRSZ);
+	printf("sent chunkinfo to  %s:%lu ... \n", address, port);		
+
 }
 
 
@@ -168,12 +178,14 @@ void get_file_from_user() {
 void send_filename() {
 	int sockfd;
 	int i;
-	int n;
 	int count = 0;
 	fileaddress_t *tmpfileaddrp;
 	struct sockaddr *destaddr;
+	struct sockaddr_in *destaddr_inp; 
+	short port; 
+	char address[20];
 
-	printf("sending filename ... \n");		
+
 
 	for (i = 0; i < MAXLINES; i++) {
 		if (count >= userservcnt) 
@@ -184,10 +196,12 @@ void send_filename() {
 		count++;
 		sockfd = fileaddrsp[i].sockfd;
 		destaddr = (struct sockaddr *)&(fileaddrsp[i].addr);
-		printf("filename %s \n", filename);
+		destaddr_inp = (struct sockaddr_in *)destaddr;
+		port = htons(destaddr_inp->sin_port);
+		inet_ntop(AF_INET, &(destaddr_inp->sin_addr), address, INET_ADDRSTRLEN);
 		create_buffer(FILENAME, filename, buffer);
-		n = sendto(sockfd, buffer, MAXBUFSIZE, SENDFLAG, destaddr, SOCKADDRSZ);
-		printf("\n i %d bufsize %ld \n", n , strlen(buffer));
+		Sendto(sockfd, buffer, MAXBUFSIZE, SENDFLAG, destaddr, SOCKADDRSZ);
+		printf("sent filename to  %s:%u ... \n", address, port);		
 	}
 }
 
@@ -253,7 +267,6 @@ void get_file_data(int serverno) {
 	long seek = infop->off;
 	int i = 1;
 	char buf[PACKETSIZE + 1];
-	int sockfd = fileaddrsp[serverno].sockfd;
 	char *data = buf;
 	long start = seek;
 	long end = seek;
@@ -266,7 +279,6 @@ void get_file_data(int serverno) {
 
 	fseek(fp, seek, SEEK_SET);
 
-	printf("tx %lu\n", HEADERLEN);
 	do {
 		bzero(buf, PACKETSIZE + 1);
 		bzero(buffer, MAXBUFSIZE);
@@ -277,11 +289,11 @@ void get_file_data(int serverno) {
 			count = MAXTXSIZE;
 		start = end;
 		if (count != MAXTXSIZE)
-			end = totalsize;
+			end = seek + totalsize;
 		else
 			end = seek + (i * count);
 
-		data = get_packet_ident(sockfd, buf, data, start, end);
+		data = get_packet_ident(serverno, buf, data, start, end);
  	
 		Write(filefd, data, count);
 		leftover -= MAXTXSIZE;
@@ -292,21 +304,45 @@ void get_file_data(int serverno) {
 
 }
 
-char *get_packet_ident(int sockfd, char *buf, char *data, int start, int end) {
+char *get_packet_ident(int serverno, char *buf, char *data, long start, long end) {
 	long ident;
+	int n = 0;
+	fd_set readfd;
+	struct timeval tv;
+	int sockfd = fileaddrsp[serverno].sockfd;
+	int maxfd = sockfd + 1;
+	struct sockaddr_in *destaddr_inp; 
+	short port; 
+	char address[20];
 
-	Read(sockfd, buf,  PACKETSIZE);
-	printf("type %s \n", data);
+	destaddr_inp = &(fileaddrsp[serverno].addr);
+	port = htons(destaddr_inp->sin_port);
+	inet_ntop(AF_INET, &(destaddr_inp->sin_addr), address, INET_ADDRSTRLEN);
+
+	FD_ZERO(&readfd);
+	FD_SET(sockfd, &readfd);
+	tv.tv_sec = 1;
+	tv.tv_usec = 0;
+	Select(maxfd, &readfd, NULL, NULL, &tv);
+
+	if (FD_ISSET(sockfd, &readfd))
+		n = Read(sockfd, buf,  PACKETSIZE);
+	if (n == 0) {
+		printf("Nothing more to read ... \n");
+		exit(-1);	
+	}
+		
+	//printf("type %s \n", data);
 	data += sizeof(type_t);
-	printf("len %s \n", data);
+	//printf("len %s \n", data);
 	data += sizeof(size_t);
-	printf("err %s \n", data); 	
+	//printf("err %s \n", data); 	
 	data += sizeof(int);
-	printf("ident %s \n", data);	
+	//printf("ident %s \n", data);	
 	ident = atol(data); 	
 	data += sizeof(unsigned long);
-	printf("string %s \t total %lu \n", data, strlen(data)); 
-	printf("Read packet %lu from %lu to %lu \n", ident, start, end); 
+	//printf("string %s \t total %lu \n", data, strlen(data)); 
+	printf("Read packet %lu from %lu to %lu from %s:%d\n", ident, start, end, address, port); 
 	return data;
 }
 

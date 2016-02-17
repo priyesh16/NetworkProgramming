@@ -215,20 +215,22 @@ void create_buffer(type_t type, void *val, char *buffer) {
 			sprintf(writer, "%s", (char *)val);
 			break;
 	}
-	//printf("\n cb: %s\n", buffer);
 }
 
 
 void send_ack(int sockfd, char *buffer, struct sockaddr *destaddrp) {
 	char ackstr[] = "ack";
-	struct sockaddr_in *destaddrp1= (struct sockaddr_in *)destaddrp;
+	char address[20];
+	struct sockaddr_in *destaddr_inp= (struct sockaddr_in *)destaddrp;
 	int n;
+	short port = ntohs(destaddr_inp->sin_port);
 
-	
-	printf("sending ack ... \n");
+	inet_ntop(AF_INET, &(destaddr_inp->sin_addr), address, INET_ADDRSTRLEN);
+		
 	
 	create_buffer(SENDACK, ackstr , buffer);
 	Sendto(sockfd, buffer, MAXBUFSIZE, SENDFLAG, destaddrp, SOCKADDRSZ);
+	printf("sent ack to address %s:%d ... \n", address, port);
 }
 
 
@@ -236,11 +238,22 @@ int get_ack(int sockfd, char *buffer) {
 	tlv_t *bufstp;	
 	struct sockaddr_in dst_addr;
 	socklen_t size = sizeof(struct sockaddr_in);
+	fd_set readfd;
+	struct timeval tv;
+	int maxfd = sockfd + 1;
+	int n = 0;
 
-	recvfrom(sockfd, buffer, MAXBUFSIZE, RECVFLAG, (struct sockaddr *)&dst_addr, &size);
-	retrieve_buffer(buffer, &bufstp);
+	FD_ZERO(&readfd);
+	FD_SET(sockfd, &readfd);
+	tv.tv_sec = 1;
+	tv.tv_usec = 0;
+	Select(maxfd, &readfd, NULL, NULL, &tv);
 
-	if (bufstp->buf_type == SENDACK)
+	if (FD_ISSET(sockfd, &readfd)) {
+		n = recvfrom(sockfd, buffer, MAXBUFSIZE, RECVFLAG, (struct sockaddr *)&dst_addr, &size);
+		retrieve_buffer(buffer, &bufstp);
+	}
+	if (n == 0)
 		return 1;
 	else
 		return 0;
