@@ -20,87 +20,6 @@ void freegp() {
 }
 
 
-void add_packet_ident(unsigned long i, char *data) {
-	char *writer = buffer;
-
-	sprintf(writer, "%d", FILECHUNK);
-	writer += sizeof(type_t);
-	sprintf(writer, "%lu", strlen((char *)data));
-	writer += sizeof(size_t);
-	sprintf(writer, "%d", NOERROR);
-	writer += sizeof(int);
-	sprintf(writer, "%lu", i);
-	writer += sizeof(unsigned long);
-	strcpy(writer, data);
-}
-
-
-void send_file_data() {
-	FILE *fp;
-	int fd;
-	long seek = infogp->off;
-	size_t count = 0;
-	long totalsize = infogp->size;
-	long leftover = totalsize;
-	long start = seek;
-	long end = seek;
-	unsigned long i = 1;
-	char data[MAXTXSIZE + 1];
-	char *writer;
-	struct sockaddr_in *destaddr_inp; 
-	char address[20];
-	short port;
-
-	printf("sending from offset %ld to %ld from file %s ...\n", seek, seek + totalsize, filename);
-	fd = Open(filename, O_RDONLY, FILE_MODE);
-	fp = fdopen(fd, "r");
-	fseek(fp, seek, SEEK_SET);	
-
-	do {
-		writer = buffer;
-		bzero(data, MAXTXSIZE + 1);
-		bzero(buffer, MAXBUFSIZE + 1);
-		if (leftover - MAXTXSIZE < 0)
-			count = leftover;
-		else
-			count = MAXTXSIZE;
-
-		Read(fd, data, count);
-		//printf("****************************\n");
-		//printf("read data \n %s \n", data);
-		//printf("****************************\n");
-		
-		add_packet_ident(i, data);
-		start = end;
-		if (count != MAXTXSIZE)
-			end = seek + totalsize;
-		else
-			end = seek + (i * count);
-		//printf("****************************\n");
-		
-		//printf("\n  %s \t", writer);
-		writer += sizeof(type_t);
-		//printf("%s \t", writer);
-		writer += sizeof(size_t);
-		//printf("%s \t", writer);
-		writer += sizeof(int);
-		//printf("%s \t", writer);
-		writer += sizeof(unsigned long);
-		//printf("%s \n", writer);
-		//printf("****************************\n");
-				
-		Sendto(sockfd, buffer, PACKETSIZE, SENDFLAG, destaddrgp, SOCKADDRSZ);
-		destaddr_inp = (struct sockaddr_in *)destaddrgp;
-		port = destaddr_inp->sin_port;
-		inet_ntop(AF_INET, &(destaddr_inp->sin_addr), address, INET_ADDRSTRLEN);
-		printf("sent packet %ld from %ld to %ld to %s:%u...\n", i, start, end, address, port);
-		leftover -= MAXTXSIZE;
-		i++;
-	} while(leftover >= 0);	
-	printf("****************************\n");
-}
-
-
 /* return a listen socket bound on  given port */
 void create_socket(unsigned long port) {
 	struct sockaddr_in serv_addr; 
@@ -154,7 +73,7 @@ type_t get_type() {
 	struct timeval tv;
 	int maxfd = sockfd + 1;
 	char address[20];
-	int port;
+	unsigned short port;
 	struct sockaddr_in *destaddr_inp;
 
 	FD_ZERO(&readfd);
@@ -174,7 +93,7 @@ type_t get_type() {
 
 	retrieve_buffer(buffer, &buffstp);
 	type = buffstp->buf_type;
-	printf("got type %d from address %s:%d...\n", buffstp->buf_type, address, port);
+	printf("got type %d from %s:%u...\n", buffstp->buf_type, address, port);
 	myfree(buffstp);
 	return type;
 }
@@ -193,4 +112,88 @@ void send_file_status() {
 	//send_syn_ack(sockfd, buffer);
 	Sendto(sockfd, buffer, MAXBUFSIZE, SENDFLAG, destaddrgp, SOCKADDRSZ);
 }
+
+
+void send_file_data() {
+	FILE *fp;
+	int fd;
+	long seek = infogp->off;
+	size_t count = 0;
+	long totalsize = infogp->size;
+	long leftover = totalsize;
+	long start = seek;
+	long end = seek;
+	unsigned long i = 1;
+	char data[MAXTXSIZE + 1];
+	//char *writer;
+	struct sockaddr_in *destaddr_inp; 
+	char address[20];
+	short port;
+	
+	printf("sending from offset %ld to %ld from file %s ...\n", seek, seek + totalsize, filename);
+	fd = Open(filename, O_RDONLY, FILE_MODE);
+	fp = fdopen(fd, "r");
+	fseek(fp, seek, SEEK_SET);	
+
+	do {
+		//writer = buffer;
+		bzero(data, MAXTXSIZE + 1);
+		bzero(buffer, MAXBUFSIZE + 1);
+		if (leftover - MAXTXSIZE < 0)
+			count = leftover;
+		else
+			count = MAXTXSIZE;
+
+		Read(fd, data, count);
+		//printf("****************************\n");
+		//printf("read data \n %s \n", data);
+		//printf("****************************\n");
+		
+		start = end;
+		if (count != MAXTXSIZE)
+			end = seek + totalsize;
+		else
+			end = seek + (i * count);
+		//printf("****************************\n");
+		
+		//printf("\n  %s \t", writer);
+		//writer += sizeof(type_t);
+		//printf("%s \t", writer);
+		//writer += sizeof(size_t);
+		//printf("%s \t", writer);
+		//writer += sizeof(int);
+		//printf("%s \t", writer);
+		//writer += sizeof(unsigned long);
+		//printf("%s \n", writer);
+		//printf("****************************\n");
+		destaddr_inp = (struct sockaddr_in *)destaddrgp;
+		port = destaddr_inp->sin_port;
+		inet_ntop(AF_INET, &(destaddr_inp->sin_addr), address, INET_ADDRSTRLEN);
+		
+		add_packet_ident(i, data);
+		if (globi != i) {
+			Sendto(sockfd, buffer, PACKETSIZE, SENDFLAG, destaddrgp, SOCKADDRSZ);	
+			printf("sent packet %ld from %ld to %ld to %s:%d...\n", i, start, end, address, port);
+		}		
+		else
+			globi = 0;		
+		leftover -= MAXTXSIZE;
+		i++;
+	} while(leftover > 0);	
+}
+
+void add_packet_ident(unsigned long i, char *data) {
+	char *writer = buffer;
+
+	sprintf(writer, "%d", FILECHUNK);
+	writer += sizeof(type_t);
+	sprintf(writer, "%lu", strlen((char *)data));
+	writer += sizeof(size_t);
+	sprintf(writer, "%d", NOERROR);
+	writer += sizeof(int);
+	sprintf(writer, "%lu", i);
+	writer += sizeof(unsigned long);
+	strcpy(writer, data);
+}
+
 

@@ -223,16 +223,15 @@ void send_ack(int sockfd, char *buffer, struct sockaddr *destaddrp) {
 	char address[20];
 	struct sockaddr_in *destaddr_inp= (struct sockaddr_in *)destaddrp;
 	int n;
-	short port = ntohs(destaddr_inp->sin_port);
+	unsigned short port = htons(destaddr_inp->sin_port);
 
 	inet_ntop(AF_INET, &(destaddr_inp->sin_addr), address, INET_ADDRSTRLEN);
 		
 	
 	create_buffer(SENDACK, ackstr , buffer);
 	Sendto(sockfd, buffer, MAXBUFSIZE, SENDFLAG, destaddrp, SOCKADDRSZ);
-	printf("sent ack to address %s:%d ... \n", address, port);
+	printf("sent ack to %s:%u ... \n", address, port);
 }
-
 
 int get_ack(int sockfd, char *buffer) {
 	tlv_t *bufstp;	

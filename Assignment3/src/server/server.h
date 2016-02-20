@@ -9,6 +9,7 @@
 char filename[MAXFILENAMESIZE];
 long firstchunksize;
 long otherchunksize;
+int globi;
 
 void mallocgp();
 void freegp();
@@ -27,3 +28,5 @@ char *buffer;
 chunkinfo_t *infogp;
 struct sockaddr *destaddrgp;
 socklen_t sockaddrsz;
+void send_file_data();
+void add_packet_ident(unsigned long i, char *data);

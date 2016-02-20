@@ -61,25 +61,9 @@ int get_ipaddr_list(const char *filename) {
 	return SUCCESS;
 }
 
-
-/*
-int get_udp_socket(unsigned long port) {
-	int sockfd = 0;
-	struct sockaddr_in serv_addr; 
-
-	memset(&serv_addr, '0', sizeof(serv_addr));
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	serv_addr.sin_port = htons(port); 
-
-	sockfd = Socket(AF_INET, SOCK_DGRAM, 0);
-	Bind(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
-	return sockfd;
-}
-*/
 void check_serv_avail() {
 	int sockfd;
-	int i = 0;
+	long int i = 0;
 	int err = SUCCESS;
 	char address[MAXADDRSIZE];
 	int count = 0;
@@ -258,94 +242,6 @@ void get_file_status() {
 }
 
 
-void get_file_data(int serverno) {
-	FILE *fp;
-	size_t count = 0;
-	chunkinfo_t *infop = &(fileaddrsp[serverno].chunkinfo);
-	long totalsize = infop->size;
-	long leftover = totalsize;
-	long seek = infop->off;
-	int i = 1;
-	char buf[PACKETSIZE + 1];
-	char *data = buf;
-	long start = seek;
-	long end = seek;
-	
-
-	printf("getting file data ...\n");
-	pthread_mutex_lock(&lock);
-	filefd = Open(filename, O_CREAT|O_WRONLY, FILE_MODE);
-	fp = fdopen(filefd, "w");
-
-	fseek(fp, seek, SEEK_SET);
-
-	do {
-		bzero(buf, PACKETSIZE + 1);
-		bzero(buffer, MAXBUFSIZE);
-		data = buf;
-		if (leftover - MAXTXSIZE < 0)
-			count = leftover;
-		else
-			count = MAXTXSIZE;
-		start = end;
-		if (count != MAXTXSIZE)
-			end = seek + totalsize;
-		else
-			end = seek + (i * count);
-
-		data = get_packet_ident(serverno, buf, data, start, end);
- 	
-		Write(filefd, data, count);
-		leftover -= MAXTXSIZE;
-		i++;
-	} while(leftover >= 0);	
-	fclose(fp);
-	pthread_mutex_unlock(&lock);
-
-}
-
-char *get_packet_ident(int serverno, char *buf, char *data, long start, long end) {
-	long ident;
-	int n = 0;
-	fd_set readfd;
-	struct timeval tv;
-	int sockfd = fileaddrsp[serverno].sockfd;
-	int maxfd = sockfd + 1;
-	struct sockaddr_in *destaddr_inp; 
-	short port; 
-	char address[20];
-
-	destaddr_inp = &(fileaddrsp[serverno].addr);
-	port = htons(destaddr_inp->sin_port);
-	inet_ntop(AF_INET, &(destaddr_inp->sin_addr), address, INET_ADDRSTRLEN);
-
-	FD_ZERO(&readfd);
-	FD_SET(sockfd, &readfd);
-	tv.tv_sec = 1;
-	tv.tv_usec = 0;
-	Select(maxfd, &readfd, NULL, NULL, &tv);
-
-	if (FD_ISSET(sockfd, &readfd))
-		n = Read(sockfd, buf,  PACKETSIZE);
-	if (n == 0) {
-		printf("Nothing more to read ... \n");
-		exit(-1);	
-	}
-		
-	//printf("type %s \n", data);
-	data += sizeof(type_t);
-	//printf("len %s \n", data);
-	data += sizeof(size_t);
-	//printf("err %s \n", data); 	
-	data += sizeof(int);
-	//printf("ident %s \n", data);	
-	ident = atol(data); 	
-	data += sizeof(unsigned long);
-	//printf("string %s \t total %lu \n", data, strlen(data)); 
-	printf("Read packet %lu from %lu to %lu from %s:%d\n", ident, start, end, address, port); 
-	return data;
-}
-
 
 void calculate_chunk_size() {
 	long feasiblecnt = userservcnt;
@@ -405,7 +301,6 @@ void calculate_chunk_size() {
 		Pthread_join(tmpfileaddrp->thread, NULL);				
 	}
 	pthread_mutex_destroy(&lock);
-
 }
 
 void *thread_func(void *servernop) {
@@ -415,4 +310,135 @@ void *thread_func(void *servernop) {
 	get_file_data(*serverno); 
 	return NULL;		
 }
+
+
+void get_file_data(int serverno) {
+	FILE *fp;
+	size_t count = 0;
+	chunkinfo_t *infop = &(fileaddrsp[serverno].chunkinfo);
+	long totalsize = infop->size;
+	long leftover = totalsize;
+	long newsize;
+	long newoff;
+	long seek = infop->off;
+	long savedseek;
+	long i = 1;
+	long ident;
+	long savedident;
+	char buf[PACKETSIZE + 1];
+	char *data = buf;
+	long start = seek;
+	long end = seek;
+	int retransmit = 0;
+	int once = 1;
+	char u = 'u';
+	char dummystr[MAXTXSIZE];
+
+	memset(dummystr, u, MAXTXSIZE);
+	dummystr[MAXTXSIZE] = '\0';
+	
+	printf("getting file data ...\n");
+	pthread_mutex_lock(&lock);
+	filefd = Open(filename, O_CREAT|O_WRONLY, FILE_MODE);
+	fp = fdopen(filefd, "w");
+
+	fseek(fp, seek, SEEK_SET);
+
+	do {
+		bzero(buf, PACKETSIZE + 1);
+		bzero(buffer, MAXBUFSIZE);
+		data = buf;
+		
+		if (leftover - MAXTXSIZE < 0)
+			count = leftover;
+		else
+			count = MAXTXSIZE;
+		start = end;
+		if (count != MAXTXSIZE)
+			end = seek + totalsize;
+		else
+			end = seek + (i * count);
+		data = get_packet_ident(serverno, buf, data, &start, &end, &ident, &i, &retransmit);
+		if (data == NULL)
+			break;
+		if (retransmit == 1) {
+			if (once == 1) {
+				strcat(dummystr, data);
+				data = dummystr;
+				count = count + MAXTXSIZE;
+				leftover -= MAXTXSIZE;
+				savedseek = seek;
+				savedident = ident - 2;
+			}
+			once = 0;
+		}
+		Write(filefd, data, count);
+		leftover -= MAXTXSIZE;
+		i++;
+	} while(leftover > 0);	
+	fclose(fp);
+	pthread_mutex_unlock(&lock);
+	if (retransmit == 1) {
+		printf("Packet recieved out of order, retransmitting ... \n");
+		//printf("seek %lu %lu \n", savedseek, savedident);
+		newoff = savedseek + (savedident * MAXTXSIZE);
+		newsize = MAXTXSIZE;
+		//printf("newsize %d %d \n", newoff, newsize);
+		fileaddrsp[serverno].cksize = newsize;
+		fileaddrsp[serverno].ckoff = newoff;			 
+		
+		send_chunk_info(serverno);
+		get_file_data(serverno);
+	}
+				
+}
+
+char *get_packet_ident(int serverno, char *buf, char *data, long *start, long *end, long *ident, long *i, int *retransmit) {
+	int n = 0;
+	fd_set readfd;
+	struct timeval tv;
+	int sockfd = fileaddrsp[serverno].sockfd;
+	int maxfd = sockfd + 1;
+	struct sockaddr_in *destaddr_inp; 
+	short port; 
+	char address[20];
+
+	destaddr_inp = &(fileaddrsp[serverno].addr);
+	port = htons(destaddr_inp->sin_port);
+	inet_ntop(AF_INET, &(destaddr_inp->sin_addr), address, INET_ADDRSTRLEN);
+
+	FD_ZERO(&readfd);
+	FD_SET(sockfd, &readfd);
+	tv.tv_sec = 1;
+	tv.tv_usec = 0;
+	Select(maxfd, &readfd, NULL, NULL, &tv);
+
+	if (FD_ISSET(sockfd, &readfd))
+		n = Read(sockfd, buf,  PACKETSIZE);
+	if (n == 0) {
+		printf("Nothing more to read ... \n");
+		return NULL;	
+	}
+		
+	//printf("type %s \n", data);
+	data += sizeof(type_t);
+	//printf("len %s \n", data);
+	data += sizeof(size_t);
+	//printf("err %s \n", data); 	
+	data += sizeof(int);
+	//printf("ident %s \n", data);	
+	*ident = atol(data); 	
+	data += sizeof(unsigned long);
+	//printf("string %s \t total %lu \n", data, strlen(data)); 
+	if (*i != *ident ) {
+		*i += 1;
+		*start += MAXTXSIZE;
+		*end += MAXTXSIZE;
+		*retransmit = 1;
+	}
+	printf("Read packet %lu from %lu to %lu from %s:%d\n", *ident, *start, *end, address, port); 
+
+	return data;
+}
+
 
