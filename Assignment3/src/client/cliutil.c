@@ -61,9 +61,31 @@ int get_ipaddr_list(const char *filename) {
 	return SUCCESS;
 }
 
+<<<<<<< HEAD
 void check_serv_avail() {
 	int sockfd;
 	long int i = 0;
+=======
+
+/*
+int get_udp_socket(unsigned long port) {
+	int sockfd = 0;
+	struct sockaddr_in serv_addr; 
+
+	memset(&serv_addr, '0', sizeof(serv_addr));
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	serv_addr.sin_port = htons(port); 
+
+	sockfd = Socket(AF_INET, SOCK_DGRAM, 0);
+	Bind(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+	return sockfd;
+}
+*/
+void check_serv_avail() {
+	int sockfd;
+	int i = 0;
+>>>>>>> 11e74c0cdc029b8f29f6e56cfb8c95f1a1251990
 	int err = SUCCESS;
 	char address[MAXADDRSIZE];
 	int count = 0;
@@ -83,11 +105,19 @@ void check_serv_avail() {
 	 	/* open a socket and connect to the server */
 		addrp = &(fileaddrsp[i].addr);
 		castaddrp = (struct sockaddr *)addrp;
+<<<<<<< HEAD
 		inet_ntop(AF_INET, &(addrp->sin_addr), address, INET_ADDRSTRLEN);
 
 		send_ack(sockfd, buffer, castaddrp);
 		err = get_ack(sockfd, buffer);
 		if (err == 1) {			
+=======
+		send_ack(sockfd, buffer, castaddrp);
+		err = get_ack(sockfd, buffer);
+		printf("ack or not : %d \n", err);
+		inet_ntop(AF_INET, &(addrp->sin_addr), address, INET_ADDRSTRLEN);
+		if (err == 0) {			
+>>>>>>> 11e74c0cdc029b8f29f6e56cfb8c95f1a1251990
 			printf("Error : Could not connect to address:port %s:%d \n", address, ntohs(addrp->sin_port));
 			fileaddrsp[i].servavail = 0;
 			continue;
@@ -119,6 +149,7 @@ void send_query_info(int serverno) {
 	int sockfd = fileaddrsp[serverno].sockfd;
 	struct sockaddr *destaddr = (struct sockaddr *)&(fileaddrsp[serverno].addr);
 	chunkinfo_t *infop = &(fileaddrsp[serverno].chunkinfo);
+<<<<<<< HEAD
 	struct sockaddr_in *destaddr_inp= (struct sockaddr_in *)destaddr;
 	unsigned long port = htons(destaddr_inp->sin_port);
 	char address[20];
@@ -133,6 +164,12 @@ void send_query_info(int serverno) {
 	Sendto(sockfd, buffer, MAXBUFSIZE, SENDFLAG, destaddr, SOCKADDRSZ);
 	printf("sent chunkinfo to  %s:%lu ... \n", address, port);		
 
+=======
+
+	printf("sending chunkinfo ... \n");		
+	create_buffer(QUERYINFO, infop, buffer);
+	Sendto(sockfd, buffer, MAXBUFSIZE, SENDFLAG, destaddr, SOCKADDRSZ);
+>>>>>>> 11e74c0cdc029b8f29f6e56cfb8c95f1a1251990
 }
 
 
@@ -162,6 +199,7 @@ void get_file_from_user() {
 void send_filename() {
 	int sockfd;
 	int i;
+<<<<<<< HEAD
 	int count = 0;
 	fileaddress_t *tmpfileaddrp;
 	struct sockaddr *destaddr;
@@ -170,6 +208,14 @@ void send_filename() {
 	char address[20];
 
 
+=======
+	int n;
+	int count = 0;
+	fileaddress_t *tmpfileaddrp;
+	struct sockaddr *destaddr;
+
+	printf("sending filename ... \n");		
+>>>>>>> 11e74c0cdc029b8f29f6e56cfb8c95f1a1251990
 
 	for (i = 0; i < MAXLINES; i++) {
 		if (count >= userservcnt) 
@@ -180,12 +226,19 @@ void send_filename() {
 		count++;
 		sockfd = fileaddrsp[i].sockfd;
 		destaddr = (struct sockaddr *)&(fileaddrsp[i].addr);
+<<<<<<< HEAD
 		destaddr_inp = (struct sockaddr_in *)destaddr;
 		port = htons(destaddr_inp->sin_port);
 		inet_ntop(AF_INET, &(destaddr_inp->sin_addr), address, INET_ADDRSTRLEN);
 		create_buffer(FILENAME, filename, buffer);
 		Sendto(sockfd, buffer, MAXBUFSIZE, SENDFLAG, destaddr, SOCKADDRSZ);
 		printf("sent filename to  %s:%u ... \n", address, port);		
+=======
+		printf("filename %s \n", filename);
+		create_buffer(FILENAME, filename, buffer);
+		n = sendto(sockfd, buffer, MAXBUFSIZE, SENDFLAG, destaddr, SOCKADDRSZ);
+		printf("\n i %d bufsize %ld \n", n , strlen(buffer));
+>>>>>>> 11e74c0cdc029b8f29f6e56cfb8c95f1a1251990
 	}
 }
 
@@ -242,6 +295,75 @@ void get_file_status() {
 }
 
 
+<<<<<<< HEAD
+=======
+void get_file_data(int serverno) {
+	FILE *fp;
+	size_t count = 0;
+	chunkinfo_t *infop = &(fileaddrsp[serverno].chunkinfo);
+	long totalsize = infop->size;
+	long leftover = totalsize;
+	long seek = infop->off;
+	int i = 1;
+	char buf[PACKETSIZE + 1];
+	int sockfd = fileaddrsp[serverno].sockfd;
+	char *data = buf;
+	long start = seek;
+	long end = seek;
+	
+
+	printf("getting file data ...\n");
+	pthread_mutex_lock(&lock);
+	filefd = Open(filename, O_CREAT|O_WRONLY, FILE_MODE);
+	fp = fdopen(filefd, "w");
+
+	fseek(fp, seek, SEEK_SET);
+
+	printf("tx %lu\n", HEADERLEN);
+	do {
+		bzero(buf, PACKETSIZE + 1);
+		bzero(buffer, MAXBUFSIZE);
+		data = buf;
+		if (leftover - MAXTXSIZE < 0)
+			count = leftover;
+		else
+			count = MAXTXSIZE;
+		start = end;
+		if (count != MAXTXSIZE)
+			end = totalsize;
+		else
+			end = seek + (i * count);
+
+		data = get_packet_ident(sockfd, buf, data, start, end);
+ 	
+		Write(filefd, data, count);
+		leftover -= MAXTXSIZE;
+		i++;
+	} while(leftover >= 0);	
+	fclose(fp);
+	pthread_mutex_unlock(&lock);
+
+}
+
+char *get_packet_ident(int sockfd, char *buf, char *data, int start, int end) {
+	long ident;
+
+	Read(sockfd, buf,  PACKETSIZE);
+	printf("type %s \n", data);
+	data += sizeof(type_t);
+	printf("len %s \n", data);
+	data += sizeof(size_t);
+	printf("err %s \n", data); 	
+	data += sizeof(int);
+	printf("ident %s \n", data);	
+	ident = atol(data); 	
+	data += sizeof(unsigned long);
+	printf("string %s \t total %lu \n", data, strlen(data)); 
+	printf("Read packet %lu from %lu to %lu \n", ident, start, end); 
+	return data;
+}
+
+>>>>>>> 11e74c0cdc029b8f29f6e56cfb8c95f1a1251990
 
 void calculate_chunk_size() {
 	long feasiblecnt = userservcnt;
@@ -301,6 +423,7 @@ void calculate_chunk_size() {
 		Pthread_join(tmpfileaddrp->thread, NULL);				
 	}
 	pthread_mutex_destroy(&lock);
+<<<<<<< HEAD
 }
 
 void *thread_func(void *servernop) {
@@ -448,3 +571,16 @@ char *get_packet_ident(int serverno, char *buf, char *data, long *start, long *e
 }
 
 
+=======
+
+}
+
+void *thread_func(void *servernop) {
+	int *serverno = (int *)servernop;
+
+	send_chunk_info(*serverno);
+	get_file_data(*serverno); 
+	return NULL;		
+}
+
+>>>>>>> 11e74c0cdc029b8f29f6e56cfb8c95f1a1251990

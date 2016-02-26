@@ -117,7 +117,7 @@ void send_file_status(int sockfd, char *buffer) {
 		create_buffer(FILEERROR, &errno, buffer);
 	else
 		create_buffer(FILESIZE, &(st.st_size), buffer);
-	printf("send_file_status: size %ld\n", st.st_size);
+	printf("sending file size: size %ld\n", st.st_size);
 	//send_syn_ack(sockfd, buffer);
 	Write(sockfd, buffer, MAXBUFSIZE);
 }

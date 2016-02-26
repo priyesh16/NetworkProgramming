@@ -3,7 +3,9 @@ Network Programming Assignment 1
 Name : Priyesh Vakayil
 ================================================================================
 
-The client connects to multiple servers and fetches a file from the servers simultaneously by spawning multiple threads.
+The client connects to multiple servers and fetches a file from the servers 
+simultaneously by spawning multiple threads. The server and client use UDP to 
+communicate to each other.
 
 ================================================================================
 Makefile and Installation
@@ -78,72 +80,104 @@ Client follows the following state machine :
 ================================================================================
 Testcases :
 ================================================================================
+
+1) Normal working as shown in the sample output below. 
+2) I tested for concurrent server accessed by multiple clients.
+3) I tested for packet loss, the client detects packet loss and retransmits, 
+	a) to enable retransmission set globi = anypacket;
+	b) modify send_file_data() - 4 commented lines refering globi 
+4) The above 2 points usually work, but I haven't considered unordered packets.
+If by any chance the packets come unordered then there will be a diff in the files.
+Also for rigourous testing I have put the packet size as just 10 bytes. Thus, there
+are high chances of packets coming unoredered for large files. Please see "Known Bugs"
+section.
  
+Normal working :
 4 servers run:
 $ ./server 3456
 $ ./server 7453
 $ ./server 3452
 
+
 MyLaptop:$cat server-info.text 
-12.23.45.1 4566
 127.0.0.1 3456
-127.0.0.1 7451
-127.0.0.1 7252
-localhost 3452
-1.2.345.3 
+127.0.0.1 3457
+127.0.0.1 3458
+127.0.0.1 3459
 
 MyLaptop:$./client server-info.text 4
-Error : Invalid address 
+reading file ...
 Connecting to available servers...(connect might take 1 sec) 
-Error : Could not connect to address:port 12.23.45.1:456 
+sent ack to 127.0.0.1:32781 ... 
 Success : Connected to address:port 127.0.0.1:3456 
-Success : Connected to address:port 127.0.0.1:7451 
-Success : Connected to address:port 127.0.0.1:7252 
-Success : Connected to address:port 127.0.0.1:3452 
+sent ack to 127.0.0.1:33037 ... 
+Success : Connected to address:port 127.0.0.1:3457 
+sent ack to 127.0.0.1:33293 ... 
+Success : Connected to address:port 127.0.0.1:3458 
+sent ack to 127.0.0.1:33549 ... 
+Error : Could not connect to address:port 127.0.0.1:3459 
 > Print the filename you want to download?(exit to quit)
 >aaa
-sending filename ... 
+sent filename to  127.0.0.1:3456 ... 
+sent filename to  127.0.0.1:3457 ... 
+sent filename to  127.0.0.1:3458 ... 
 getting file status ... 
-sending chunkinfo ... 
+sent chunkinfo to  127.0.0.1:3456 ... 
+Sorry only 3 servers available 
 
-Thread 1 writing from offset 0 till 22 
+Thread 0 writing from offset 0 till 30 
+Read packet 1 from 0 to 10 from 127.0.0.1:3456
+Read packet 2 from 10 to 20 from 127.0.0.1:3456
+Read packet 3 from 20 to 30 from 127.0.0.1:3456
 
-Thread 2 writing from offset 22 till 44 
+Thread 1 writing from offset 30 till 58 
+Read packet 1 from 30 to 40 from 127.0.0.1:3457
+Read packet 2 from 40 to 50 from 127.0.0.1:3457
+Read packet 3 from 50 to 58 from 127.0.0.1:3457
 
-Thread 3 writing from offset 44 till 66 
-
-Thread 4 writing from offset 66 till 88 
-MyLaptop:$diff aaa ../server/aaa
+Thread 2 writing from offset 58 till 86 
+Read packet 1 from 58 to 68 from 127.0.0.1:3458
+Read packet 2 from 68 to 78 from 127.0.0.1:3458
+Read packet 3 from 78 to 86 from 127.0.0.1:3458
 MyLaptop:$
 
-
-MyLaptop:$./server 7252
-get_type got type 0 
-get_type got type 3 
-getting chunk info ... 
-sending from offset 44 to 66 from file aaa ...
-
 MyLaptop:$./server 3456
-get_type got type 0 
-get_type got type 1 
-send_file_status: size 88
-get_type got type 3 
+got type 6 from 127.0.0.1:39307...
+sent ack to 127.0.0.1:39307 ... 
+got type 0 from 127.0.0.1:39307...
+got type 1 from 127.0.0.1:39307...
+sending file size: size 86
+got type 3 from 127.0.0.1:39307...
 getting chunk info ... 
-sending from offset 0 to 22 from file aaa ...
+sending from offset 0 to 30 from file aaa ...
+sent packet 1 from 0 to 10 to 127.0.0.1:39307...
+sent packet 2 from 10 to 20 to 127.0.0.1:39307...
+sent packet 3 from 20 to 30 to 127.0.0.1:39307...
 
-MyLaptop:$./server 7451
-get_type got type 0 
-get_type got type 3 
+MyLaptop:$./server 3457
+got type 6 from 127.0.0.1:39307...
+sent ack to 127.0.0.1:39307 ... 
+got type 0 from 127.0.0.1:39307...
+got type 3 from 127.0.0.1:39307...
 getting chunk info ... 
-sending from offset 22 to 44 from file aaa ...
+sending from offset 30 to 58 from file aaa ...
+sent packet 1 from 30 to 40 to 127.0.0.1:39307...
+sent packet 2 from 40 to 50 to 127.0.0.1:39307...
+sent packet 3 from 50 to 58 to 127.0.0.1:39307...
 
-MyLaptop:$./server 3452
-get_type got type 0 
-get_type got type 3 
+MyLaptop:$./server 3458
+got type 6 from 127.0.0.1:39307...
+sent ack to 127.0.0.1:39307 ... 
+got type 0 from 127.0.0.1:39307...
+got type 3 from 127.0.0.1:39307...
 getting chunk info ... 
-sending from offset 66 to 88 from file aaa ...
+sending from offset 58 to 86 from file aaa ...
+sent packet 1 from 58 to 68 to 127.0.0.1:39307...
+sent packet 2 from 68 to 78 to 127.0.0.1:39307...
+sent packet 3 from 78 to 86 to 127.0.0.1:39307...
 
-
+MyLaptop:$diff aaa ../server/aaa 
+MyLaptop:$
  
 ================================================================================
 Handling Errors
@@ -165,12 +199,14 @@ Known Bugs
 ================================================================================
 1) Didn't run enough testcases with different serv-info.text files. Could be bugs
 in them
-2) Once while testing, file open failed for a server that was supposed to send a 
-specific file portion, since the open failed that chunk of the file was not 
-transmitted. This caused a difference in the file recieved by the client and
-file on the server. After that I was never able to replicate this issue.
-3) Once while testing, I noticed that if I give just one server as argument to
-the client then it hangs. Again after that I was never able to replicate this issue.
+2) I haven't handled unordered packets. If by chance the packets from the server
+come unordered, then there will be diff in the files. I have code to detect unordered
+packets though, but it just detects the first unordered packet and tries to retransmit 
+it. Also, for rigourous testing I have put the packet size as just 10 bytes
+#define MAXTXSIZE 10  (in common.h)
+Thus, there are high chances of packets coming unoredered for large files. To reduce
+the number of unordered packets, please increase this value.
+
 ================================================================================
 List of files
 ================================================================================

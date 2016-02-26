@@ -49,7 +49,11 @@ void *thread_func(void *serverno);
 void get_file_status();
 void send_filename();
 void get_file_from_user();
+<<<<<<< HEAD
 char *get_packet_ident(int sockfd, char *buf, char *data, long *start, long *end, long *ident, long *i, int *retransmit);
+=======
+char *get_packet_ident(int sockfd, char *buf, char *data, int start, int end);
+>>>>>>> 11e74c0cdc029b8f29f6e56cfb8c95f1a1251990
 int get_ipaddr_list(const char *filename);
 void check_serv_avail();
 void Pthread_create(pthread_t *tid, const pthread_attr_t *attr,

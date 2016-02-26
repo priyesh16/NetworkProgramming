@@ -40,7 +40,7 @@
 #define SENDFLAG    0
 #define RECVFLAG    0
 #define SOCKADDRSZ sizeof(struct sockaddr)
-#define MAXTXSIZE 1000
+#define MAXTXSIZE 10
 #define HEADERLEN (sizeof(type_t) + sizeof(size_t) + sizeof(int) + sizeof(unsigned long))
 #define PACKETSIZE MAXTXSIZE + HEADERLEN	
 #define PROMPTSTR "> Print the filename you want to download?(exit to quit)\n>"

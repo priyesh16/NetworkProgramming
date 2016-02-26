@@ -26,14 +26,13 @@
 #define CHUNKINFOLEN 100 
 #define EXITCMD "exit"
 #define MAXLINES 10
-#define MAXLINELEN 15 
+#define MAXLINELEN 35 
 #define OUTLEN 332
 #define MAXBUFSIZE 1000
 #define MAXADDRSIZE 15
 #define MAXFILENAMESIZE 50
 #define MEMERRSTR "Err: Heap memory full..exiting"
 #define NOERROR 0
-#define FILEINVALIDSTR "> Err: Invalid File \n"
 
 #define PROMPTSTR "> Print the filename you want to download?(exit to quit)\n>"
 typedef enum type_s {

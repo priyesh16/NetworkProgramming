@@ -28,8 +28,8 @@ void retrieve_port(const char* portstr, unsigned long *portno){
 	port = strtoul(portstr, &endptr, BASE);
 	if((err = is_port(port)) != 0)
 		err_sys("%s \n ", "Invalid Port");
-	if (*endptr != '\0')
-		printf("Making use of port %lu from %s \n", port, portstr);
+	//if (*endptr != '\0')
+	//	printf("Making use of port %lu from %s \n", port, portstr);
 	*portno = port;
 }
 

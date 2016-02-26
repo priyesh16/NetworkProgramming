@@ -22,7 +22,6 @@ int main(int argc, char **argv) {
 	 */
 		
 	while(1){
-		printf("\n looping...\n");
 		bzero(buffer, MAXBUFSIZE * sizeof(char));
 		/* connect to a new client */
 		if (nextclient == 1) {

@@ -4,7 +4,6 @@
 #include <common.h>
 
 #define MAXLINES 10
-#define MAXLINELEN 15 
 #define NEWLINE '\n'
 #define LOCALHOST "127.0.0.1"
 #define LOCALHOSTSTR "localhost"

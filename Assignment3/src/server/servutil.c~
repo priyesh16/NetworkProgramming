@@ -22,6 +22,7 @@ void freegp() {
 
 /* return a listen socket bound on  given port */
 void create_socket(unsigned long port) {
+	globi = -1;
 	struct sockaddr_in serv_addr; 
 
 	/* fill socket data structure given a port */
@@ -128,7 +129,7 @@ void send_file_data() {
 	//char *writer;
 	struct sockaddr_in *destaddr_inp; 
 	char address[20];
-	short port;
+	unsigned short port;
 	
 	printf("sending from offset %ld to %ld from file %s ...\n", seek, seek + totalsize, filename);
 	fd = Open(filename, O_RDONLY, FILE_MODE);
@@ -136,7 +137,7 @@ void send_file_data() {
 	fseek(fp, seek, SEEK_SET);	
 
 	do {
-		writer = buffer;
+		//writer = buffer;
 		bzero(data, MAXTXSIZE + 1);
 		bzero(buffer, MAXBUFSIZE + 1);
 		if (leftover - MAXTXSIZE < 0)
@@ -173,7 +174,7 @@ void send_file_data() {
 		add_packet_ident(i, data);
 		if (globi != i) {
 			Sendto(sockfd, buffer, PACKETSIZE, SENDFLAG, destaddrgp, SOCKADDRSZ);	
-			printf("sent packet %ld from %ld to %ld to %s:%d...\n", i, start, end, address, port);
+			printf("sent packet %ld from %ld to %ld to %s:%u...\n", i, start, end, address, port);
 		}		
 		else
 			globi = 0;		

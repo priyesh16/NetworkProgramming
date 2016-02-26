@@ -6,7 +6,7 @@ SERVDIR=$(SRCDIR)/server
 CLIDIR=$(SRCDIR)/client
 COMMONDIR=$(SRCDIR)/common
 MAKE=make
-COPYFILES=$(BINDIR)/myserver $(BINDIR)/myclient
+COPYFILES=$(BINDIR)/myserver $(BINDIR)/myclient $(BINDIR)/server-info.text
 
 install: all directories $(COPYFILES) 
 
@@ -17,6 +17,7 @@ ${BINDIR}:
 
 $(BINDIR)/myserver: src/server/server  
 $(BINDIR)/myclient: src/client/client
+$(BINDIR)/server-info.text: src/client/server-info.text
 
 ${BINDIR}/%:
 	cp -f $< $@

@@ -19,6 +19,7 @@ int get_ipaddr_list(const char *filename) {
 	fileaddrsp = (fileaddress_t *)malloc(MAXLINES * sizeof(fileaddress_t));
 	bzero(fileaddrsp, MAXLINES * sizeof(fileaddress_t));
 
+	printf("reading file ...\n");
 	while(count < MAXLINES) {
 		bzero(address, sizeof(address));
 		bzero(line, sizeof(line));
@@ -190,23 +191,31 @@ void get_file_status() {
 	tlv_t *bufstp = NULL;
 	fileaddress_t *tmpfileaddrp;
 	int i = 0;
+	int n = 0;
+	int count = 0;
 	printf("getting file status ... \n");		
-	for (i = 0; i < userservcnt; i++) {
+	for (i = 0; i < MAXLINES; i++) {
+		if (count >= userservcnt)
+			break;
 		tmpfileaddrp = &fileaddrsp[i];
-
+		
 		if (tmpfileaddrp->servavail == 0)
 			continue;
+		count++;
 		
 		sockfd	= tmpfileaddrp->sockfd;
 		send_query_info(i);
 		sleep(1);
 		//get_ack(sockfd, buffer);
 	
-		Read(sockfd, buffer, MAXBUFSIZE);
+		n = Read(sockfd, buffer, MAXBUFSIZE);
+		if (n == 0) {
+			printf("Getting file status failed, try again \n");
+			exit(-1);
+		}
 		retrieve_buffer(buffer, &bufstp);
 		if (bufstp->buf_err == 0) {
 			fileinforx = 1;
-			myfree(bufstp);
 			break;	 
 		}
 		else {
@@ -216,11 +225,16 @@ void get_file_status() {
 		}
 	}
 
+	if (bufstp == NULL) {
+		printf("Getting file status failed, try again \n");
+		exit(-1);
+	}
 	filesize = bufstp->buf_cksize;
 	filefd = Open(filename, O_CREAT|O_WRONLY|O_TRUNC, FILE_MODE);
 	ftruncate(filefd, filesize); 
 	fp = fdopen(filefd, "w");
 	fclose(fp);
+	myfree(bufstp);
 }
 
 #define MAXTXSIZE 10

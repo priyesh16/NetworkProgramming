@@ -1,7 +1,10 @@
+<<<<<<< HEAD
 #ifndef SERVER_H
 #define SERVER_H
 
 
+=======
+>>>>>>> 11e74c0cdc029b8f29f6e56cfb8c95f1a1251990
 #include <common.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -13,7 +16,10 @@
 char filename[MAXFILENAMESIZE];
 long firstchunksize;
 long otherchunksize;
+<<<<<<< HEAD
 int globi;
+=======
+>>>>>>> 11e74c0cdc029b8f29f6e56cfb8c95f1a1251990
 
 void mallocgp();
 void freegp();
@@ -32,8 +38,11 @@ char *buffer;
 chunkinfo_t *infogp;
 struct sockaddr *destaddrgp;
 socklen_t sockaddrsz;
+<<<<<<< HEAD
 void send_file_data();
 void add_packet_ident(unsigned long i, char *data);
 
 
 #endif
+=======
+>>>>>>> 11e74c0cdc029b8f29f6e56cfb8c95f1a1251990
