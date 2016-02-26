@@ -304,10 +304,12 @@ void calculate_chunk_size() {
 }
 
 void *thread_func(void *servernop) {
-	int *serverno = (int *)servernop;
 
+	int *serverno = (int *)servernop;
+	pthread_mutex_lock(&lock);
 	send_chunk_info(*serverno);
 	get_file_data(*serverno); 
+	pthread_mutex_unlock(&lock);
 	return NULL;		
 }
 
@@ -333,12 +335,14 @@ void get_file_data(int serverno) {
 	int once = 1;
 	char u = 'u';
 	char dummystr[MAXTXSIZE];
+	//int locked = 0;
 
 	memset(dummystr, u, MAXTXSIZE);
 	dummystr[MAXTXSIZE] = '\0';
 	
-	printf("getting file data ...\n");
-	pthread_mutex_lock(&lock);
+	//printf("getting file data ...\n");
+	//if (locked == 0)
+		//pthread_mutex_lock(&lock);
 	filefd = Open(filename, O_CREAT|O_WRONLY, FILE_MODE);
 	fp = fdopen(filefd, "w");
 
@@ -369,6 +373,7 @@ void get_file_data(int serverno) {
 				leftover -= MAXTXSIZE;
 				savedseek = seek;
 				savedident = ident - 2;
+				//printf("savedidnent %d %d\n", ident, savedident);
 			}
 			once = 0;
 		}
@@ -376,8 +381,6 @@ void get_file_data(int serverno) {
 		leftover -= MAXTXSIZE;
 		i++;
 	} while(leftover > 0);	
-	fclose(fp);
-	pthread_mutex_unlock(&lock);
 	if (retransmit == 1) {
 		printf("Packet recieved out of order, retransmitting ... \n");
 		//printf("seek %lu %lu \n", savedseek, savedident);
@@ -386,11 +389,13 @@ void get_file_data(int serverno) {
 		//printf("newsize %d %d \n", newoff, newsize);
 		fileaddrsp[serverno].cksize = newsize;
 		fileaddrsp[serverno].ckoff = newoff;			 
-		
+		//locked = 1;
 		send_chunk_info(serverno);
 		get_file_data(serverno);
 	}
-				
+	fclose(fp);
+	//locked = 0;
+	//pthread_mutex_unlock(&lock);
 }
 
 char *get_packet_ident(int serverno, char *buf, char *data, long *start, long *end, long *ident, long *i, int *retransmit) {
@@ -431,6 +436,7 @@ char *get_packet_ident(int serverno, char *buf, char *data, long *start, long *e
 	data += sizeof(unsigned long);
 	//printf("string %s \t total %lu \n", data, strlen(data)); 
 	if (*i != *ident ) {
+		//printf("inside i = ident %d %d \n", *i , *ident);
 		*i += 1;
 		*start += MAXTXSIZE;
 		*end += MAXTXSIZE;

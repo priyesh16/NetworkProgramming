@@ -1,3 +1,7 @@
+#ifndef SERVER_H
+#define SERVER_H
+
+
 #include <common.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -30,3 +34,6 @@ struct sockaddr *destaddrgp;
 socklen_t sockaddrsz;
 void send_file_data();
 void add_packet_ident(unsigned long i, char *data);
+
+
+#endif
