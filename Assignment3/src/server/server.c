@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 	 */
 	validate_arg(argc, 2, USAGE);
 	retrieve_port(argv[1], &port);
-	globi = 3;	
+	
 	create_socket(port);
 	/* connect to a client, accept commands from it
 	 * and sent it the output of the command
