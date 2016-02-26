@@ -1,4 +1,4 @@
-cscope 15 $HOME/Dropbox/UCSC/NetworkProgramming/Assignment3/cscope               0000236788
+cscope 15 $HOME/Dropbox/UCSC/NetworkProgramming/Assignment3/cscope               0000240575
 	@../Makefile
 
 3 
@@ -2995,67 +2995,67 @@ buf„r
 	~"˛iutû.h
 "
 
-4 
+3 
 	$gë_ùaddr_li°
 (c⁄° *
 fûíame
 ) {
 
-5 
+4 
 fd
 ;
 
-6 
+5 
 fûóddªss_t
  
 curfûóddr
- = {{0},{0},0};
+;
 
-7 
+6 
 sockaddr_ö
  *
 cursockaddΩ
 ;
 
-8 
+7 
 cou¡
  = 0;
 
-9 
+8 
 löe
 [
 MAXLINELEN
 ];
 
-10 
+9 
 n
 ;
 
-11 *
+10 *
 ù°r
 ;
 
-12 *
+11 *
 p‹t°r
 ;
 
-13 
+12 
 p‹t
 ;
 
-14 
+13 
 addªss
 [30];
 
-15 
+14 
 îr
  = 0;
 
-16 c⁄° *
+15 c⁄° *
 îr°r
 ;
 
-18 
+17 
 fd
  = 
 	`O≥n
@@ -3065,7 +3065,7 @@ fûíame
 O_RDONLY
 , 0);
 
-19 
+18 
 fûóddr•
  = (
 fûóddªss_t
@@ -3075,7 +3075,7 @@ fûóddªss_t
 MAXLINES
  * (fileaddress_t));
 
-20 
+19 
 	`bzîo
 (
 fûóddr•
@@ -3085,29 +3085,29 @@ MAXLINES
 fûóddªss_t
 ));
 
-22 
+21 
 	`¥ötf
 ("reading file ...\n");
 
-23 
+22 
 cou¡
  < 
 MAXLINES
 ) {
 
-24 
+23 
 	`bzîo
 (
 addªss
 , (address));
 
-25 
+24 
 	`bzîo
 (
 löe
 , (line));
 
-26 
+25 
 n
  = 
 	`Ródlöe
@@ -3119,21 +3119,21 @@ löe
 MAXLINELEN
 );
 
-27 i‡(
+26 i‡(
 löe
 [0] =
 NEWLINE
 )
 
-29 i‡(!
+28 i‡(!
 n
 )
 
-31 i‡(
+30 i‡(
 n
  < 7)
 
-33 
+32 
 ù°r
  = 
 	`°πok
@@ -3141,7 +3141,7 @@ n
 löe
 , " ");
 
-34 i‡(!
+33 i‡(!
 	`°rcmp
 (
 ù°r
@@ -3149,7 +3149,7 @@ löe
 LOCALHOSTSTR
 ))
 
-35 
+34 
 	`°r˝y
 (
 ù°r
@@ -3157,13 +3157,21 @@ LOCALHOSTSTR
 LOCALHOST
 );
 
-36 
+35 
 p‹t°r
  = 
 	`°πok
 (
 NULL
 , " ");
+
+36 
+	`bzîo
+(&
+curfûóddr
+, (
+fûóddªss_t
+));
 
 38 
 cursockaddΩ
@@ -3283,38 +3291,78 @@ SUCCESS
 	}
 }
 
-66 
-	$gë_udp_sockë
-(
-p‹t
-) {
+80 
+	$check_£rv_avaû
+() {
 
-67 
+81 
 sockfd
- = 0;
-
-68 
-sockaddr_ö
- 
-£rv_addr
 ;
 
-71 
-	`mem£t
-(&
-£rv_addr
-, '0', (serv_addr));
+82 
+i
+ = 0;
 
-72 
-£rv_addr
+83 
+îr
+ = 
+SUCCESS
+;
+
+84 
+addªss
+[
+MAXADDRSIZE
+];
+
+85 
+cou¡
+ = 0;
+
+86 
+sockaddr_ö
+ *
+addΩ
+;
+
+87 
+sockaddr
+ *
+ˇ°addΩ
+;
+
+88 
+sockaddr_ö
+ 
+myaddr
+;
+
+90 
+sockfd
+ = 
+	`Sockë
+(
+AF_INET
+, 
+SOCK_DGRAM
+, 0);
+
+91 
+	`mem£t
+((*)&
+myaddr
+, 0, (myaddr));
+
+92 
+myaddr
 .
 sö_Ámûy
  = 
 AF_INET
 ;
 
-73 
-£rv_addr
+93 
+myaddr
 .
 sö_addr
 .
@@ -3325,95 +3373,35 @@ s_addr
 INADDR_ANY
 );
 
-74 
-£rv_addr
+94 
+myaddr
 .
 sö_p‹t
  = 
 	`ht⁄s
-(
-p‹t
-);
+(0);
 
-77 
-sockfd
- = 
-	`Sockë
-(
-AF_INET
-, 
-SOCK_DGRAM
-, 0);
-
-78 
+96 
 	`Böd
 (
 sockfd
 , (
 sockaddr
-*)&
-£rv_addr
-, (serv_addr));
+ *)&
+myaddr
+, (sockaddr));
 
-79  
-sockfd
-;
-
-80 
-	}
-}
-
-84 
-	$check_£rv_avaû
-() {
-
-85 
-sockfd
-;
-
-86 
-i
- = 0;
-
-87 
-îr
- = 
-SUCCESS
-;
-
-88 
-addªss
-[
-MAXADDRSIZE
-];
-
-89 
-cou¡
- = 0;
-
-90 
-sockaddr_ö
- *
-addΩ
-;
-
-91 
-sockaddr
- *
-ˇ°addΩ
-;
-
-93 
+97 
 	`¥ötf
 ("ConnectingÅoávailable servers...(connect mightÅake 1 sec) \n");
 
-94 
+98 
 i
  = 0; i < 
 fûe£rv˙t
 ; i++) {
 
-96 
+100 
 addΩ
  = &(
 fûóddr•
@@ -3423,7 +3411,7 @@ i
 addr
 );
 
-97 
+101 
 ˇ°addΩ
  = (
 sockaddr
@@ -3431,29 +3419,33 @@ sockaddr
 addΩ
 ;
 
-98 
-sockfd
- = 
-	`Sockë
+102 
+	`£nd_ack
 (
-AF_INET
+sockfd
 , 
-SOCK_STREAM
-, 0);
-
-99 
-îr
- = 
-	`c⁄√˘_timeo
-(
-sockfd
+buf„r
 , 
 ˇ°addΩ
-, (
-sockaddr
-), 1);
+);
 
-100 
+103 
+îr
+ = 
+	`gë_ack
+(
+sockfd
+, 
+buf„r
+);
+
+104 
+	`¥ötf
+("ack o∏nŸ : %d \n", 
+îr
+);
+
+105 
 	`öë_¡›
 (
 AF_INET
@@ -3467,41 +3459,13 @@ addªss
 INET_ADDRSTRLEN
 );
 
-101 i‡(
+106 i‡(
 îr
- < 0) {
-
-102 
-	`¥ötf
-("Eº‹ : CouldÇŸ c⁄√˘Åÿaddªss:p‹à%s:%d \n", 
-addªss
-, 
-	`¡ohs
-(
-addΩ
-->
-sö_p‹t
-));
-
-103 
-fûóddr•
-[
-i
-].
-£rvavaû
- = 0;
-
-106 
-fûóddr•
-[
-i
-].
-£rvavaû
- = 1;
+ == 0) {
 
 107 
 	`¥ötf
-("Suc˚s†: C⁄√˘edÅÿaddªss:p‹à%s:%d \n", 
+("Eº‹ : CouldÇŸ c⁄√˘Åÿaddªss:p‹à%s:%d \n", 
 addªss
 , 
 	`¡ohs
@@ -3516,48 +3480,76 @@ fûóddr•
 [
 i
 ].
-sockfd
- = sockfd;
+£rvavaû
+ = 0;
 
-109 
-cou¡
-++;
-
-111 i‡(
-cou¡
- == 0) {
+111 
+fûóddr•
+[
+i
+].
+£rvavaû
+ = 1;
 
 112 
 	`¥ötf
-("SorryÇo serversÅo connectátÅhisÖoint \n");
+("Suc˚s†: C⁄√˘edÅÿaddªss:p‹à%s:%d \n", 
+addªss
+, 
+	`¡ohs
+(
+addΩ
+->
+sö_p‹t
+));
 
 113 
+fûóddr•
+[
+i
+].
+sockfd
+ = sockfd;
+
+114 
+cou¡
+++;
+
+116 i‡(
+cou¡
+ == 0) {
+
+117 
+	`¥ötf
+("SorryÇo serversÅo connectátÅhisÖoint \n");
+
+118 
 	`my‰ì
 (
 buf„r
 );
 
-114 
+119 
 	`exô
 (1);
 
-116 
+121 
 avaû£rv˙t
  = 
 cou¡
 ;
 
-117 
+122 
 	}
 }
 
-119 
+124 
 	$£nd_chunk_öfo
 (
 £rvîno
 ) {
 
-120 
+125 
 sockfd
  = 
 fûóddr•
@@ -3565,7 +3557,19 @@ fûóddr•
 £rvîno
 ].sockfd;
 
-121 
+126 
+sockaddr
+ *
+de°addr
+ = (sockadd∏*)&(
+fûóddr•
+[
+£rvîno
+].
+addr
+);
+
+127 
 chunköfo_t
  *
 öf›
@@ -3577,7 +3581,7 @@ fûóddr•
 chunköfo
 );
 
-123 
+129 
 	`¥ötf
 ("\nThªad %d wrôög from off£à%ldÅû»%ld \n", 
 £rvîno
@@ -3589,7 +3593,7 @@ off
 size
 );
 
-124 
+130 
 	`¸óã_buf„r
 (
 CHUNKINFO
@@ -3599,27 +3603,33 @@ CHUNKINFO
 buf„r
 );
 
-125 
-	`Wrôe
+131 
+	`Sídto
 (
 sockfd
 , 
 buf„r
 , 
 MAXBUFSIZE
+, 
+SENDFLAG
+, 
+de°addr
+, 
+SOCKADDRSZ
 );
 
-126 
+132 
 	}
 }
 
-128 
+134 
 	$£nd_quîy_öfo
 (
 £rvîno
 ) {
 
-129 
+135 
 sockfd
  = 
 fûóddr•
@@ -3627,7 +3637,19 @@ fûóddr•
 £rvîno
 ].sockfd;
 
-130 
+136 
+sockaddr
+ *
+de°addr
+ = (sockadd∏*)&(
+fûóddr•
+[
+£rvîno
+].
+addr
+);
+
+137 
 chunköfo_t
  *
 öf›
@@ -3639,11 +3661,11 @@ fûóddr•
 chunköfo
 );
 
-132 
+139 
 	`¥ötf
 ("sending chunkinfo ... \n");
 
-133 
+140 
 	`¸óã_buf„r
 (
 QUERYINFO
@@ -3653,83 +3675,47 @@ QUERYINFO
 buf„r
 );
 
-134 
-	`Wrôe
-(
-sockfd
-, 
-buf„r
-, 
-MAXBUFSIZE
-);
-
-135 
-	}
-}
-
-137 
-	$gë_ack
-(
-sockfd
-, *
-buf„r
-) {
-
-138 
-év_t
- *
-buf°p
-;
-
-139 
-	`Ród
-(
-sockfd
-, 
-buf„r
-, 
-MAXBUFSIZE
- * ());
-
-140 
-	`ªåõve_buf„r
-(
-buf„r
-, &
-buf°p
-);
-
 141 
-	`my‰ì
+	`Sídto
 (
-buf°p
+sockfd
+, 
+buf„r
+, 
+MAXBUFSIZE
+, 
+SENDFLAG
+, 
+de°addr
+, 
+SOCKADDRSZ
 );
 
 142 
 	}
 }
 
-144 
+145 
 	$gë_fûe_‰om_u£r
 () {
 
-145 
+146 
 buf„r
 [
 MAXBUFSIZE
 ];
 
-146 *
+147 *
 íd
 ;
 
-149 
+150 
 	`¥ötf
 (
 PROMPTSTR
 );
 
-150 
+151 
 	`bzîo
 (
 buf„r
@@ -3737,7 +3723,7 @@ buf„r
 MAXBUFSIZE
 );
 
-154 
+155 
 	`fgës
 (
 fûíame
@@ -3747,7 +3733,7 @@ MAXFILENAMESIZE
 °dö
 );
 
-155 
+156 
 	`¢¥ötf
 (
 buf„r
@@ -3757,7 +3743,7 @@ MAXFILENAMESIZE
 fûíame
 );
 
-156 
+157 
 íd
  = 
 	`°ºchr
@@ -3765,21 +3751,21 @@ fûíame
 fûíame
 , '\n');
 
-157 i‡(
+158 i‡(
 íd
 )
 
-158 *
+159 *
 íd
  = '\0';
 
-159 i‡(!
+160 i‡(!
 	`°æí
 (
 fûíame
 ))
 
-161 if(!
+162 if(!
 	`°rcmp
 (
 fûíame
@@ -3787,53 +3773,63 @@ fûíame
 EXITCMD
 ))
 
-162 
+163 
 	`exô
 (1);
 
-165 
+166 
 	}
 }
 
-167 
+168 
 	$£nd_fûíame
 () {
 
-168 
+169 
 sockfd
 ;
 
-169 
+170 
 i
 ;
 
-170 
+171 
+n
+;
+
+172 
 cou¡
  = 0;
 
-171 
+173 
 fûóddªss_t
  *
 tmpfûóddΩ
 ;
 
-173 
+174 
+sockaddr
+ *
+de°addr
+;
+
+176 
 	`¥ötf
 ("sending filename ... \n");
 
-175 
+178 
 i
  = 0; i < 
 MAXLINES
 ; i++) {
 
-176 i‡(
+179 i‡(
 cou¡
  >
 u£r£rv˙t
 )
 
-178 
+181 
 tmpfûóddΩ
  = &
 fûóddr•
@@ -3841,17 +3837,17 @@ fûóddr•
 i
 ];
 
-179 i‡(
+182 i‡(
 tmpfûóddΩ
 ->
 £rvavaû
  == 0)
 
-181 
+184 
 cou¡
 ++;
 
-182 
+185 
 sockfd
  = 
 fûóddr•
@@ -3859,7 +3855,25 @@ fûóddr•
 i
 ].sockfd;
 
-183 
+186 
+de°addr
+ = (
+sockaddr
+ *)&(
+fûóddr•
+[
+i
+].
+addr
+);
+
+187 
+	`¥ötf
+("fûíamê%†\n", 
+fûíame
+);
+
+188 
 	`¸óã_buf„r
 (
 FILENAME
@@ -3869,35 +3883,53 @@ fûíame
 buf„r
 );
 
-184 
-	`Wrôe
+189 
+n
+ = 
+	`£ndto
 (
 sockfd
 , 
 buf„r
 , 
-MAXFILENAMESIZE
+MAXBUFSIZE
+, 
+SENDFLAG
+, 
+de°addr
+, 
+SOCKADDRSZ
 );
 
-186 
+190 
+	`¥ötf
+("\¿ò%d bufsizê%ld \n", 
+n
+ , 
+	`°æí
+(
+buf„r
+));
+
+192 
 	}
 }
 
-188 
+194 
 	$gë_fûe_°©us
 () {
 
-189 
+195 
 FILE
  *
 Â
 ;
 
-190 
+196 
 sockfd
 ;
 
-191 
+197 
 év_t
  *
 buf°p
@@ -3905,41 +3937,41 @@ buf°p
 NULL
 ;
 
-192 
+198 
 fûóddªss_t
  *
 tmpfûóddΩ
 ;
 
-193 
+199 
 i
  = 0;
 
-194 
+200 
 n
  = 0;
 
-195 
+201 
 cou¡
  = 0;
 
-196 
+202 
 	`¥ötf
 ("getting file status ... \n");
 
-197 
+203 
 i
  = 0; i < 
 MAXLINES
 ; i++) {
 
-198 i‡(
+204 i‡(
 cou¡
  >
 u£r£rv˙t
 )
 
-200 
+206 
 tmpfûóddΩ
  = &
 fûóddr•
@@ -3947,33 +3979,33 @@ fûóddr•
 i
 ];
 
-202 i‡(
+208 i‡(
 tmpfûóddΩ
 ->
 £rvavaû
  == 0)
 
-204 
+210 
 cou¡
 ++;
 
-206 
+212 
 sockfd
  = 
 tmpfûóddΩ
 ->sockfd;
 
-207 
+213 
 	`£nd_quîy_öfo
 (
 i
 );
 
-208 
+214 
 	`¶ìp
 (1);
 
-211 
+217 
 n
  = 
 	`Ród
@@ -3985,19 +4017,19 @@ buf„r
 MAXBUFSIZE
 );
 
-212 i‡(
+218 i‡(
 n
  == 0) {
 
-213 
+219 
 	`¥ötf
 ("Getting file status failed,Åryágain \n");
 
-214 
+220 
 	`exô
 (-1);
 
-216 
+222 
 	`ªåõve_buf„r
 (
 buf„r
@@ -4005,47 +4037,47 @@ buf„r
 buf°p
 );
 
-217 i‡(
+223 i‡(
 buf°p
 ->
 buf_îr
  == 0) {
 
-218 
+224 
 fûeöf‹x
  = 1;
 
-222 
+228 
 	`my‰ì
 (
 buf°p
 );
 
-223 
+229 
 	`¥ötf
 (
 FILEINVALIDSTR
 );
 
-224 
+230 
 	`exô
 (1);
 
-228 i‡(
+234 i‡(
 buf°p
  =
 NULL
 ) {
 
-229 
+235 
 	`¥ötf
 ("Getting file status failed,Åryágain \n");
 
-230 
+236 
 	`exô
 (-1);
 
-232 
+238 
 fûesize
  = 
 buf°p
@@ -4053,7 +4085,7 @@ buf°p
 buf_cksize
 ;
 
-233 
+239 
 fûefd
  = 
 	`O≥n
@@ -4069,7 +4101,7 @@ O_TRUNC
 FILE_MODE
 );
 
-234 
+240 
 	`·runˇã
 (
 fûefd
@@ -4077,7 +4109,7 @@ fûefd
 fûesize
 );
 
-235 
+241 
 Â
  = 
 	`fd›í
@@ -4085,47 +4117,41 @@ fûesize
 fûefd
 , "w");
 
-236 
+242 
 	`f˛o£
 (
 Â
 );
 
-237 
+243 
 	`my‰ì
 (
 buf°p
 );
 
-238 
+244 
 	}
 }
 
-240 
-	#MAXTXSIZE
- 10
-
-	)
-
-241 
+247 
 	$gë_fûe_d©a
 (
 £rvîno
 ) {
 
-242 
+248 
 FILE
  *
 Â
 ;
 
-243 
+249 
 size_t
  
 cou¡
  = 0;
 
-244 
+250 
 chunköfo_t
  *
 öf›
@@ -4137,7 +4163,7 @@ fûóddr•
 chunköfo
 );
 
-245 
+251 
 tŸÆsize
  = 
 öf›
@@ -4145,7 +4171,13 @@ tŸÆsize
 size
 ;
 
-246 
+252 
+À·ovî
+ = 
+tŸÆsize
+;
+
+253 
 £ek
  = 
 öf›
@@ -4153,17 +4185,17 @@ size
 off
 ;
 
-247 
+254 
 i
- = 0;
+ = 1;
 
-248 
+255 
 buf
 [
-MAXTXSIZE
+PACKETSIZE
  + 1];
 
-249 
+256 
 sockfd
  = 
 fûóddr•
@@ -4171,13 +4203,35 @@ fûóddr•
 £rvîno
 ].sockfd;
 
-251 
+257 *
+d©a
+ = 
+buf
+;
+
+258 
+°¨t
+ = 
+£ek
+;
+
+259 
+íd
+ = 
+£ek
+;
+
+262 
+	`¥ötf
+("getting file data ...\n");
+
+263 
 	`±hªad_muãx_lock
 (&
 lock
 );
 
-252 
+264 
 fûefd
  = 
 	`O≥n
@@ -4191,7 +4245,7 @@ O_WRONLY
 FILE_MODE
 );
 
-253 
+265 
 Â
  = 
 	`fd›í
@@ -4199,7 +4253,7 @@ FILE_MODE
 fûefd
 , "w");
 
-255 
+267 
 	`f£ek
 (
 Â
@@ -4209,109 +4263,275 @@ fûefd
 SEEK_SET
 );
 
-258 i‡(
-tŸÆsize
+269 
+	`¥ötf
+("tx %lu\n", 
+HEADERLEN
+);
+
+271 
+	`bzîo
+(
+buf
+, 
+PACKETSIZE
+ + 1);
+
+272 
+	`bzîo
+(
+buf„r
+, 
+MAXBUFSIZE
+);
+
+273 
+d©a
+ = 
+buf
+;
+
+274 i‡(
+À·ovî
  - 
 MAXTXSIZE
  < 0)
 
-259 
+275 
 cou¡
  = 
-tŸÆsize
+À·ovî
 ;
 
-261 
+277 
 cou¡
  = 
 MAXTXSIZE
 ;
 
-262 
+278 
+°¨t
+ = 
+íd
+;
+
+279 i‡(
+cou¡
+ !
+MAXTXSIZE
+)
+
+280 
+íd
+ = 
+tŸÆsize
+;
+
+282 
+íd
+ = 
+£ek
+ + (
+i
+ * 
+cou¡
+);
+
+284 
+d©a
+ = 
+	`gë_∑ckë_idít
+(
+sockfd
+, 
+buf
+, d©a, 
+°¨t
+, 
+íd
+);
+
+286 
+	`Wrôe
+(
+fûefd
+, 
+d©a
+, 
+cou¡
+);
+
+287 
+À·ovî
+ -
+MAXTXSIZE
+;
+
+288 
+i
+++;
+
+289 } 
+À·ovî
+ >= 0);
+
+290 
+	`f˛o£
+(
+Â
+);
+
+291 
+	`±hªad_muãx_u∆ock
+(&
+lock
+);
+
+293 
+	}
+}
+
+295 *
+	$gë_∑ckë_idít
+(
+sockfd
+, *
+buf
+, *
+d©a
+, 
+°¨t
+, 
+íd
+) {
+
+296 
+idít
+;
+
+298 
 	`Ród
 (
 sockfd
 , 
 buf
 , 
-cou¡
+PACKETSIZE
 );
 
-263 
-	`Wrôe
+299 
+	`¥ötf
+("ty≥ %†\n", 
+d©a
+);
+
+300 
+d©a
+ +(
+ty≥_t
+);
+
+301 
+	`¥ötf
+("À¿%†\n", 
+d©a
+);
+
+302 
+d©a
+ +(
+size_t
+);
+
+303 
+	`¥ötf
+("î∏%†\n", 
+d©a
+);
+
+304 
+d©a
+ += ();
+
+305 
+	`¥ötf
+("idíà%†\n", 
+d©a
+);
+
+306 
+idít
+ = 
+	`©ﬁ
 (
-fûefd
-, 
-buf
-, 
-cou¡
+d©a
 );
 
-264 
-tŸÆsize
- -
-MAXTXSIZE
+307 
+d©a
+ += ();
+
+308 
+	`¥ötf
+("°rög %†\àtŸÆ %lu \n", 
+d©a
+, 
+	`°æí
+(data));
+
+309 
+	`¥ötf
+("RódÖackë %lu from %luÅÿ%lu \n", 
+idít
+, 
+°¨t
+, 
+íd
+);
+
+310  
+d©a
 ;
 
-265 
-i
-++;
-
-266 } 
-tŸÆsize
- >= 0);
-
-267 
-	`f˛o£
-(
-Â
-);
-
-268 
-	`±hªad_muãx_u∆ock
-(&
-lock
-);
-
-270 
+311 
 	}
 }
 
-274 
+314 
 	$ˇlcuœã_chunk_size
 () {
 
-275 
+315 
 „asibÀ˙t
  = 
 u£r£rv˙t
 ;
 
-276 
+316 
 i
 ;
 
-277 
+317 
 avaû˙t
  = 0;
 
-278 
+318 
 fûóddªss_t
  *
 tmpfûóddΩ
 ;
 
-279 
+319 
 £rvînﬂº
 [
 MAXLINES
 ];
 
-280 
+320 
 cou¡
 ;
 
-282 i‡(
+322 i‡(
 	`±hªad_muãx_öô
 (&
 lock
@@ -4319,47 +4539,47 @@ lock
 NULL
 ) != 0)
 
-284 
+324 
 	`¥ötf
 ("\n mutex init failed\n");
 
-285 
+325 
 	`exô
 (1);
 
-289 i‡(
+329 i‡(
 avaû£rv˙t
  < 
 u£r£rv˙t
 ) {
 
-290 
+330 
 	`¥ötf
 ("S‹ry o∆y %d sîvî†avaûabÀ \n", 
 avaû£rv˙t
 );
 
-291 
+331 
 „asibÀ˙t
  = 
 avaû£rv˙t
 ;
 
-294 i‡(
+334 i‡(
 „asibÀ˙t
  == 1) {
 
-295 
+335 
 Ÿhîchunksize
  = 0;
 
-296 
+336 
 fú°chunksize
  = 
 fûesize
 ;
 
-299 
+339 
 Ÿhîchunksize
  = 
 fûesize
@@ -4367,7 +4587,7 @@ fûesize
 „asibÀ˙t
 ;
 
-300 
+340 
 fú°chunksize
  = 
 fûesize
@@ -4377,23 +4597,23 @@ fûesize
 Ÿhîchunksize
 );
 
-302 
+342 
 cou¡
  = 0;
 
-303 
+343 
 i
  = 0; i < 
 MAXLINES
 ; i++) {
 
-304 i‡(
+344 i‡(
 cou¡
  >
 u£r£rv˙t
 )
 
-306 
+346 
 tmpfûóddΩ
  = &
 fûóddr•
@@ -4401,17 +4621,17 @@ fûóddr•
 i
 ];
 
-307 i‡(
+347 i‡(
 tmpfûóddΩ
 ->
 £rvavaû
  == 0)
 
-309 
+349 
 cou¡
 ++;
 
-310 
+350 
 tmpfûóddΩ
 ->
 cksize
@@ -4419,7 +4639,7 @@ cksize
 Ÿhîchunksize
 ;
 
-311 
+351 
 tmpfûóddΩ
 ->
 ckoff
@@ -4431,11 +4651,11 @@ avaû˙t
 Ÿhîchunksize
 );
 
-313 i‡(
+353 i‡(
 avaû˙t
  == 0) {
 
-314 
+354 
 tmpfûóddΩ
 ->
 cksize
@@ -4443,23 +4663,23 @@ cksize
 fú°chunksize
 ;
 
-315 
+355 
 tmpfûóddΩ
 ->
 ckoff
  = 0;
 
-317 
+357 
 avaû˙t
 ++;
 
-318 
+358 
 £rvînﬂº
 [
 i
 ] = i;
 
-319 
+359 
 	`Pthªad_¸óã
 (&
 tmpfûóddΩ
@@ -4475,23 +4695,23 @@ thªad_func
 i
 ]));
 
-321 
+361 
 cou¡
  = 0;
 
-322 
+362 
 i
  = 0; i < 
 MAXLINES
 ; i++) {
 
-323 i‡(
+363 i‡(
 cou¡
  >
 u£r£rv˙t
 )
 
-325 
+365 
 tmpfûóddΩ
  = &
 fûóddr•
@@ -4499,17 +4719,17 @@ fûóddr•
 i
 ];
 
-326 i‡(
+366 i‡(
 tmpfûóddΩ
 ->
 thªad
  == 0)
 
-328 
+368 
 cou¡
 ++;
 
-329 
+369 
 	`Pthªad_joö
 (
 tmpfûóddΩ
@@ -4519,45 +4739,45 @@ thªad
 NULL
 );
 
-331 
+371 
 	`±hªad_muãx_de°roy
 (&
 lock
 );
 
-333 
+373 
 	}
 }
 
-335 *
+375 *
 	$thªad_func
 (*
 £rvîn›
 ) {
 
-336 *
+376 *
 £rvîno
  = (*)
 £rvîn›
 ;
 
-338 
+378 
 	`£nd_chunk_öfo
 (*
 £rvîno
 );
 
-339 
+379 
 	`gë_fûe_d©a
 (*
 £rvîno
 );
 
-340  
+380  
 NULL
 ;
 
-341 
+381 
 	}
 }
 
@@ -4607,45 +4827,65 @@ CLIUTIL_H
 
 	)
 
-13 
+11 
+	#SENDFLAG
+ 0
+
+	)
+
+12 
+	#RECVFLAG
+ 0
+
+	)
+
+13 
+	#SOCKADDRSZ
+ (
+sockaddr
+)
+
+	)
+
+16 
 	sfûóddªss_s
  {
 
-14 
+17 
 sockaddr_ö
  
 	maddr
 ;
 
-15 
+18 
 chunköfo_t
  
 	mchunköfo
 ;
 
-16 
+19 
 	m£rvavaû
 ;
 
-17 
+20 
 	mfûóvaû
 ;
 
-18 
+21 
 	msockfd
 ;
 
-19 
+22 
 ±hªad_t
  
 	mthªad
 ;
 
-20 }
+23 }
 	tfûóddªss_t
 ;
 
-21 
+24 
 	#cksize
  
 chunköfo
@@ -4655,7 +4895,7 @@ size
 
 	)
 
-22 
+25 
 	#ckoff
  
 chunköfo
@@ -4665,59 +4905,59 @@ off
 
 	)
 
-24 
+27 
 	gfú°chunksize
 ;
 
-25 
+28 
 	gŸhîchunksize
 ;
 
-26 
+29 
 	gu£r£rv˙t
 ;
 
-27 
+30 
 	gfûe£rv˙t
 ;
 
-28 
+31 
 	gavaû£rv˙t
 ;
 
-29 
+32 
 fûóddªss_t
  *
 	gfûóddr•
 ;
 
-30 *
+33 *
 	gbuf„r
 ;
 
-31 
+34 
 	gfûefd
 ;
 
-32 
+35 
 	gfûesize
 ;
 
-33 
+36 
 	gglob£rvîno
 ;
 
-34 
+37 
 	gfûeöf‹x
 ;
 
-35 
+38 
 	gfûíame
 [
 MAXFILENAMESIZE
 ];
 
-36 
+39 
 gëùaddªss‰omfûe
 (
 sockaddr_ö
@@ -4725,77 +4965,83 @@ sockaddr_ö
 £rv_addrs
 []);
 
-37 
+40 
 ±hªad_muãx_t
  
 	glock
 ;
 
-40 
+43 
 gëudpsockë
 (
 p‹t
 );
 
-41 
+44 
 £nd_chunk_öfo
 (
 £rvîno
 );
 
-42 
+45 
 gëùaddr‰omfûe
 (c⁄° *
 fûíame
 );
 
-43 
+46 
 gë_fûe_d©a
 (
 £rvîno
 );
 
-44 
+47 
 ˇlcuœã_chunk_size
 ();
 
-45 *
+48 *
 thªad_func
 (*
 £rvîno
 );
 
-46 
+49 
 gë_fûe_°©us
 ();
 
-47 
+50 
 £nd_fûíame
 ();
 
-48 
+51 
 gë_fûe_‰om_u£r
 ();
 
-50 
-gë_ack
+52 *
+gë_∑ckë_idít
 (
 sockfd
 , *
-buf„r
+buf
+, *
+d©a
+, 
+°¨t
+, 
+íd
 );
 
-51 
+53 
 gë_ùaddr_li°
 (c⁄° *
 fûíame
 );
 
-52 
+54 
 check_£rv_avaû
 ();
 
-53 
+55 
 Pthªad_¸óã
 (
 ±hªad_t
@@ -4807,13 +5053,13 @@ tid
 ©å
 ,
 
-54 * (*
+56 * (*
 func
 )(*), *
 ¨g
 );
 
-55 
+57 
 Pthªad_joö
 (
 ±hªad_t
@@ -5055,33 +5301,7 @@ ußge
 	}
 }
 
-45 
-	$£nd_ack
-() {
-
-46 
-	`fÊush
-(
-NULL
-);
-
-47 
-	`¥ötf
-("%s", 
-ACK
-);
-
-48 
-	`fÊush
-(
-NULL
-);
-
-49 
-	}
-}
-
-54 
+44 
 	$vÆid©e_¨g
 (
 ¨gc
@@ -5091,87 +5311,87 @@ max
 u£age
 ){
 
-55 i‡(
+45 i‡(
 ¨gc
  !
 max
 ){
 
-56 
+46 
 	`ußge
 (
 u£age
 );
 
-57 
+47 
 	`îr_sys
 ("%s \n ", "Invalid No. of Arguments");
 
-59 
+49 
 	}
 }
 
-65 
+55 
 	$‰ìÆl
 () {
 
-67 
+57 
 	}
 }
 
-69 
+59 
 	$my‰ì
 (*
 ±r
 ) {
 
-70 i‡(
+60 i‡(
 ±r
  !
 NULL
 )
 
-71 
+61 
 	`‰ì
 (
 ±r
 );
 
-72 
+62 
 	}
 }
 
-74 
+64 
 	$myexô
 (c⁄° *
 îr°r
 ) {
 
-75 
+65 
 	`¥ötf
 ("%s", 
 îr°r
 );
 
-76 
+66 
 	`‰ìÆl
 ();
 
-77 
+67 
 	`fÊush
 (
 NULL
 );
 
-78 
+68 
 	`exô
 (1);
 
-79 
+69 
 	}
 }
 
-81 
+71 
 	$ªåõve_buf„r
 (*
 buf„r
@@ -5181,19 +5401,19 @@ buf„r
 buff°µ
 ) {
 
-82 
+72 
 év_t
  *
 buff°p
 ;
 
-83 *
+73 *
 wrôî
  = 
 buf„r
 ;
 
-85 
+75 
 buff°p
  = (
 év_t
@@ -5201,17 +5421,17 @@ buff°p
 	`mÆloc
 ((tlv_t));
 
-86 i‡(
+76 i‡(
 buff°p
  =
 NULL
 )
 
-87  
+77  
 MEMERR
 ;
 
-88 
+78 
 	`bzîo
 (
 buff°p
@@ -5219,7 +5439,7 @@ buff°p
 év_t
 ));
 
-91 
+80 
 buff°p
 ->
 buf_ty≥
@@ -5229,29 +5449,29 @@ buf_ty≥
 wrôî
 );
 
-92 
+81 
 wrôî
  +(
 ty≥_t
 );
 
-93 
+82 
 buff°p
 ->
 buf_Àn
  = 
-	`©oi
+	`©ﬁ
 (
 wrôî
 );
 
-94 
+83 
 wrôî
  +(
 size_t
 );
 
-95 
+84 
 buff°p
 ->
 buf_îr
@@ -5261,21 +5481,21 @@ buf_îr
 wrôî
 );
 
-96 
+85 
 wrôî
  += ();
 
-98 
+87 
 buff°p
 ->
 buf_ty≥
 ) {
 
-99 
+88 
 FILENAME
 :
 
-100 
+89 
 buff°p
 ->
 buf_‚ame
@@ -5285,7 +5505,7 @@ buf_‚ame
 MAXBUFSIZE
  * ());
 
-101 i‡(
+90 i‡(
 buff°p
 ->
 buf_‚ame
@@ -5293,11 +5513,11 @@ buf_‚ame
 NULL
 )
 
-102  
+91  
 MEMERR
 ;
 
-103 
+92 
 	`bzîo
 (
 buff°p
@@ -5307,7 +5527,7 @@ buf_‚ame
 MAXBUFSIZE
  * ());
 
-104 
+93 
 	`°r˝y
 (
 buff°p
@@ -5317,11 +5537,11 @@ buf_‚ame
 wrôî
 );
 
-108 
+97 
 FILESIZE
 :
 
-109 
+98 
 buff°p
 ->
 buf_fsize
@@ -5331,11 +5551,11 @@ buf_fsize
 wrôî
 );
 
-113 
+102 
 FILECHUNK
 :
 
-114 
+103 
 buff°p
 ->
 buf_d©a
@@ -5345,7 +5565,7 @@ buf_d©a
 MAXBUFSIZE
  * ());
 
-115 i‡(
+104 i‡(
 buff°p
 ->
 buf_d©a
@@ -5353,11 +5573,11 @@ buf_d©a
 NULL
 )
 
-116  
+105  
 MEMERR
 ;
 
-117 
+106 
 	`bzîo
 (
 buff°p
@@ -5367,7 +5587,7 @@ buf_d©a
 MAXBUFSIZE
  * ());
 
-118 
+107 
 	`°r˝y
 (
 buff°p
@@ -5377,11 +5597,11 @@ buf_d©a
 wrôî
 );
 
-122 
+111 
 FILEERROR
 :
 
-123 
+112 
 buff°p
 ->
 buf_îr‹
@@ -5391,7 +5611,7 @@ buf_îr‹
 MAXBUFSIZE
  * ());
 
-124 i‡(
+113 i‡(
 buff°p
 ->
 buf_îr‹
@@ -5399,11 +5619,11 @@ buf_îr‹
 NULL
 )
 
-125  
+114  
 MEMERR
 ;
 
-126 
+115 
 	`bzîo
 (
 buff°p
@@ -5413,7 +5633,7 @@ buf_îr‹
 MAXBUFSIZE
  * ());
 
-127 
+116 
 	`°r˝y
 (
 buff°p
@@ -5423,11 +5643,11 @@ buf_îr‹
 wrôî
 );
 
-131 
+120 
 QUERYINFO
 :
 
-132 
+121 
 buff°p
 ->
 buf_îr‹
@@ -5437,7 +5657,7 @@ buf_îr‹
 MAXBUFSIZE
  * ());
 
-133 i‡(
+122 i‡(
 buff°p
 ->
 buf_îr‹
@@ -5445,11 +5665,11 @@ buf_îr‹
 NULL
 )
 
-134  
+123  
 MEMERR
 ;
 
-135 
+124 
 	`bzîo
 (
 buff°p
@@ -5459,7 +5679,7 @@ buf_îr‹
 MAXBUFSIZE
  * ());
 
-137 
+126 
 	`°r˝y
 (
 buff°p
@@ -5469,11 +5689,11 @@ buf_îr‹
 wrôî
 );
 
-141 
+130 
 CHUNKINFO
 :
 
-142 
+131 
 buff°p
 ->
 buf_cksize
@@ -5483,11 +5703,11 @@ buf_cksize
 wrôî
 );
 
-143 
+132 
 wrôî
  += ();
 
-144 
+133 
 buff°p
 ->
 buf_off£t
@@ -5497,43 +5717,43 @@ buf_off£t
 wrôî
 );
 
-148 
+137 
 SENDACK
 :
 
-149 
+138 
 buff°p
 ->
-buf_îr‹
+buf_ack°r
  = (*)
 	`mÆloc
 (
 MAXBUFSIZE
  * ());
 
-150 i‡(
+139 i‡(
 buff°p
 ->
-buf_îr‹
+buf_ack°r
  =
 NULL
 )
 
-151  
+140  
 MEMERR
 ;
 
-152 
+141 
 	`bzîo
 (
 buff°p
 ->
-buf_îr‹
+buf_ack°r
 , 
 MAXBUFSIZE
  * ());
 
-154 
+143 
 	`°r˝y
 (
 buff°p
@@ -5543,21 +5763,21 @@ buf_îr‹
 wrôî
 );
 
-160 *
+149 *
 buff°µ
  = 
 buff°p
 ;
 
-161  
+150  
 SUCCESS
 ;
 
-162 
+151 
 	}
 }
 
-165 
+154 
 	$¸óã_buf„r
 (
 ty≥_t
@@ -5569,13 +5789,21 @@ vÆ
 buf„r
 ) {
 
-166 *
+155 *
 wrôî
  = 
 buf„r
 ;
 
-167 
+156 
+size_t
+ 
+Àn
+ = (
+ty≥_t
+) + (size_t) + ();
+
+158 
 	`•rötf
 (
 wrôî
@@ -5583,29 +5811,79 @@ wrôî
 ty≥
 );
 
-168 
+159 
 wrôî
  +(
 ty≥_t
 );
 
-170 
+161 
 ty≥
 ) {
 
-171 
+162 
 FILENAME
 :
+
+163 
+Àn
+ =Üí + 
+	`°æí
+((*)
+vÆ
+);
+
+164 
+	`•rötf
+(
+wrôî
+, "%lu", 
+Àn
+);
+
+165 
+wrôî
+ +(
+size_t
+);
+
+166 
+	`•rötf
+(
+wrôî
+ , "%d", 
+NOERROR
+);
+
+167 
+wrôî
+ += ();
+
+168 
+	`•rötf
+(
+wrôî
+, "%s", (*)
+vÆ
+);
+
+170 
+FILESIZE
+:
+
+171 
+Àn
+ =Üí + 
+	`°æí
+((*)
+vÆ
+);
 
 172 
 	`•rötf
 (
 wrôî
-, "%lu", 
-	`°æí
-((*)
-vÆ
-));
+, "%lu", ());
 
 173 
 wrôî
@@ -5629,19 +5907,25 @@ wrôî
 	`•rötf
 (
 wrôî
-, "%s", (*)
+, "%ld", *(
+off_t
+ *)
 vÆ
 );
 
 178 
-FILESIZE
+FILECHUNK
 :
 
 179 
 	`•rötf
 (
 wrôî
-, "%lu", ());
+, "%lu", 
+	`°æí
+((*)
+vÆ
+));
 
 180 
 wrôî
@@ -5665,38 +5949,32 @@ wrôî
 	`•rötf
 (
 wrôî
-, "%ld", *(
-off_t
- *)
+, "%s", (*)
 vÆ
 );
 
 185 
-FILECHUNK
+FILEERROR
 :
 
 186 
 	`•rötf
 (
 wrôî
-, "%lu", 
-	`°æí
-((*)
-vÆ
-));
+, "%lu", ());
 
 187 
 wrôî
  +(
-size_t
+ssize_t
 );
 
 188 
 	`•rötf
 (
 wrôî
- , "%d", 
-NOERROR
+ , "%d", *(*)
+vÆ
 );
 
 189 
@@ -5707,12 +5985,12 @@ wrôî
 	`•rötf
 (
 wrôî
-, "%s", (*)
-vÆ
+, "%s", 
+INVALIDFILE
 );
 
 192 
-FILEERROR
+QUERYINFO
 :
 
 193 
@@ -5748,46 +6026,10 @@ INVALIDFILE
 );
 
 199 
-QUERYINFO
-:
-
-200 
-	`•rötf
-(
-wrôî
-, "%lu", ());
-
-201 
-wrôî
- +(
-ssize_t
-);
-
-202 
-	`•rötf
-(
-wrôî
- , "%d", *(*)
-vÆ
-);
-
-203 
-wrôî
- += ();
-
-204 
-	`•rötf
-(
-wrôî
-, "%s", 
-INVALIDFILE
-);
-
-206 
 CHUNKINFO
 :
 
-207 
+200 
 	`•rötf
 (
 wrôî
@@ -5795,13 +6037,13 @@ wrôî
 chunköfo_t
 ));
 
-208 
+201 
 wrôî
  +(
 size_t
 );
 
-209 
+202 
 	`•rötf
 (
 wrôî
@@ -5809,11 +6051,11 @@ wrôî
 NOERROR
 );
 
-210 
+203 
 wrôî
  += ();
 
-211 
+204 
 	`•rötf
 (
 wrôî
@@ -5825,11 +6067,11 @@ vÆ
 size
 );
 
-212 
+205 
 wrôî
  += ();
 
-213 
+206 
 	`•rötf
 (
 wrôî
@@ -5841,47 +6083,185 @@ vÆ
 off
 );
 
-214 
+207 
 wrôî
  += ();
 
-216 
+209 
 SENDACK
 :
 
-217 
-	`•rötf
-(
-wrôî
-, "%lu", ());
-
-218 
-wrôî
- +(
-ssize_t
-);
-
-219 
-	`•rötf
-(
-wrôî
- , "%d", *(*)
+210 
+Àn
+ =Üí + 
+	`°æí
+((*)
 vÆ
 );
 
-220 
-wrôî
- += ();
-
-221 
+211 
 	`•rötf
 (
 wrôî
-, "%s", 
-INVALIDFILE
+, "%lu", 
+Àn
 );
 
-225 
+212 
+wrôî
+ +(
+size_t
+);
+
+213 
+	`•rötf
+(
+wrôî
+ , "%d", 
+NOERROR
+);
+
+214 
+wrôî
+ += ();
+
+215 
+	`•rötf
+(
+wrôî
+, "%s", (*)
+vÆ
+);
+
+219 
+	}
+}
+
+222 
+	$£nd_ack
+(
+sockfd
+, *
+buf„r
+, 
+sockaddr
+ *
+de°addΩ
+) {
+
+223 
+ack°r
+[] = "ack";
+
+224 
+sockaddr_ö
+ *
+de°addΩ1
+(sockaddr_ö *)
+de°addΩ
+;
+
+225 
+n
+;
+
+228 
+	`¥ötf
+("sendingáck ... \n");
+
+230 
+	`¸óã_buf„r
+(
+SENDACK
+, 
+ack°r
+ , 
+buf„r
+);
+
+231 
+	`Sídto
+(
+sockfd
+, 
+buf„r
+, 
+MAXBUFSIZE
+, 
+SENDFLAG
+, 
+de°addΩ
+, 
+SOCKADDRSZ
+);
+
+232 
+	}
+}
+
+235 
+	$gë_ack
+(
+sockfd
+, *
+buf„r
+) {
+
+236 
+év_t
+ *
+buf°p
+;
+
+237 
+sockaddr_ö
+ 
+d°_addr
+;
+
+238 
+sockÀn_t
+ 
+size
+ = (
+sockaddr_ö
+);
+
+240 
+	`ªcv‰om
+(
+sockfd
+, 
+buf„r
+, 
+MAXBUFSIZE
+, 
+RECVFLAG
+, (
+sockaddr
+ *)&
+d°_addr
+, &
+size
+);
+
+241 
+	`ªåõve_buf„r
+(
+buf„r
+, &
+buf°p
+);
+
+243 i‡(
+buf°p
+->
+buf_ty≥
+ =
+SENDACK
+)
+
+247 
 	}
 }
 
@@ -6057,147 +6437,221 @@ COMMON_H
 
 	)
 
+36 
+	#NEWLINE
+ '\n'
+
+	)
+
 37 
+	#LOCALHOST
+ "127.0.0.1"
+
+	)
+
+38 
+	#LOCALHOSTSTR
+ "loˇlho°"
+
+	)
+
+39 
+	#FILEINVALIDSTR
+ "\n> Eº: InvÆid Fûe,Åryágaö\n"
+
+	)
+
+40 
+	#SENDFLAG
+ 0
+
+	)
+
+41 
+	#RECVFLAG
+ 0
+
+	)
+
+42 
+	#SOCKADDRSZ
+ (
+sockaddr
+)
+
+	)
+
+43 
+	#MAXTXSIZE
+ 60
+
+	)
+
+44 
+	#HEADERLEN
+ ((
+ty≥_t
+Ë+ (
+size_t
+Ë+ (Ë+ ())
+
+	)
+
+45 
+	#PACKETSIZE
+ 
+MAXTXSIZE
+ + 
+HEADERLEN
+
+
+	)
+
+46 
 	#PROMPTSTR
  "> Pröàthêfûíamêyou w™àtÿdow∆ﬂd?”xôÅÿquô)\n>"
 
 	)
 
-38 
+47 
 	ety≥_s
  {
 
-39 
+48 
 	mFILENAME
 ,
 
-40 
+49 
 	mQUERYINFO
 ,
 
-41 
+50 
 	mFILESIZE
 ,
 
-42 
+51 
 	mCHUNKINFO
 ,
 
-43 
+52 
 	mFILECHUNK
 ,
 
-44 
+53 
 	mFILEERROR
 ,
 
-45 
+54 
 	mSENDACK
 ,
 
-46 
+55 
 	mCLIENTCLOSE
 ,
 
-47 }
+56 }
 	tty≥_t
 ;
 
-49 
+58 
 	eîr‹_s
  {
 
-50 
+59 
 	mMEMERR
 ,
 
-51 }
+60 }
 	tîr‹_t
 ;
 
-53 
+62 
 	schucköfo_s
  {
 
-54 
+63 
 	msize
 ;
 
-55 
+64 
 	moff
 ;
 
-56 }
+65 }
 	tchunköfo_t
 ;
 
-58 
+67 
 	sfûechunk_s
  {
 
-59 
+68 
 	midít
 ;
 
-60 *
+69 *
 	mchunkd©a
 ;
 
-61 }
+70 }
 	tfûechunk_t
 ;
 
-64 
+73 
 	sév_s
  {
 
-65 
+74 
 ty≥_t
  
 	mbuf_ty≥
 ;
 
-66 
+75 
 size_t
  
 	mbuf_Àn
 ;
 
-67 
+76 
 	mbuf_îr
 ;
 
-69 
+78 
 off_t
  
 	mfûesize
 ;
 
-70 
+79 
 chunköfo_t
  
 	mchunköfo
 ;
 
-71 
+80 
 fûechunk_t
  
 	mfûechunk
 ;
 
-72 *
+81 *
 	mîr‹°r
 ;
 
-73 *
+82 *
 	mfûíame
 ;
 
-74 }
+83 *
+	mack°r
+;
+
+84 }
 	mbufvÆ_t
 ;
 
-75 
+85 
 	#buf_fsize
  
 bufvÆ_t
@@ -6207,7 +6661,7 @@ fûesize
 
 	)
 
-76 
+86 
 	#buf_îr‹
  
 bufvÆ_t
@@ -6217,7 +6671,7 @@ bufvÆ_t
 
 	)
 
-77 
+87 
 	#buf_idít
  
 bufvÆ_t
@@ -6229,7 +6683,7 @@ idít
 
 	)
 
-78 
+88 
 	#buf_d©a
  
 bufvÆ_t
@@ -6241,7 +6695,7 @@ chunkd©a
 
 	)
 
-79 
+89 
 	#buf_cköfo
  
 bufvÆ_t
@@ -6253,7 +6707,7 @@ size
 
 	)
 
-80 
+90 
 	#buf_cksize
  
 bufvÆ_t
@@ -6265,7 +6719,7 @@ size
 
 	)
 
-81 
+91 
 	#buf_off£t
  
 bufvÆ_t
@@ -6277,7 +6731,7 @@ off
 
 	)
 
-82 
+92 
 	#buf_‚ame
  
 bufvÆ_t
@@ -6287,17 +6741,27 @@ fûíame
 
 	)
 
-83 }
+93 
+	#buf_ack°r
+ 
+bufvÆ_t
+.
+ack°r
+
+
+	)
+
+94 }
 	tév_t
 ;
 
-85 
+96 
 my‰ì
 (*
 ±r
 );
 
-86 
+97 
 ªåõvï‹t
 (c⁄° * 
 p‹t°r
@@ -6305,7 +6769,7 @@ p‹t°r
 p‹äo
 );
 
-91 
+102 
 vÆid©e_¨g
 (
 ¨gc
@@ -6315,29 +6779,29 @@ max
 u£age
 );
 
-94 
+105 
 isùaddr
 (*
 addr
 );
 
-97 
+108 
 i•‹t
 (
 p‹t
 );
 
-99 
+110 
 ‰ìÆl
 ();
 
-100 
+111 
 myexô
 (c⁄° *
 îr°r
 );
 
-101 
+112 
 ªåõve_buf„r
 (*
 buf„r
@@ -6347,7 +6811,7 @@ buf„r
 buff°µ
 );
 
-102 
+113 
 ¸óã_buf„r
 (
 ty≥_t
@@ -6359,12 +6823,32 @@ vÆ
 buf„r
 );
 
-103 
+114 
 ªåõve_p‹t
 (c⁄° * 
 p‹t°r
 , *
 p‹äo
+);
+
+115 
+£nd_ack
+(
+sockfd
+, *
+buf„r
+, 
+sockaddr
+ *
+de°addΩ
+);
+
+116 
+gë_ack
+(
+sockfd
+, *
+buf„r
 );
 
 	@../src/server/Makefile
@@ -6481,7 +6965,7 @@ LIBDIR
 	~"£rvî.h
 "
 
-3 
+4 
 	$maö
 (
 ¨gc
@@ -6489,55 +6973,25 @@ LIBDIR
 ¨gv
 ) {
 
-4 
+5 
 p‹t
 ;
 
-5 
-sockfd
-;
-
 6 
-c⁄nfd
-;
-
-7 
 √xt˛õ¡
  = 1;
 
-8 *
-buf„r
-;
-
-9 
-chunköfo_t
- 
-chunköfo
-;
-
-10 
+7 
 ty≥_t
  
 ty≥
-;
+ = 20;
 
 12 
-buf„r
- = (*)
-	`mÆloc
-(
-MAXBUFSIZE
- * ());
+	`mÆlocgp
+();
 
-13 
-	`bzîo
-(
-buf„r
-, 
-MAXBUFSIZE
- * ());
-
-18 
+16 
 	`vÆid©e_¨g
 (
 ¨gc
@@ -6545,7 +6999,7 @@ MAXBUFSIZE
 USAGE
 );
 
-19 
+17 
 	`ªåõve_p‹t
 (
 ¨gv
@@ -6553,117 +7007,105 @@ USAGE
 p‹t
 );
 
-21 
-sockfd
- = 
+19 
 	`¸óã_sockë
 (
 p‹t
 );
 
-29 i‡(
+25 
+	`bzîo
+(
+buf„r
+, 
+MAXBUFSIZE
+ * ());
+
+27 i‡(
 √xt˛õ¡
  == 1) {
 
-30 
-c⁄nfd
- = 
-	`gë_li°í_sockë
-(
-sockfd
-);
-
-31 
+29 
 √xt˛õ¡
  = 0;
 
-37 
+36 
 ty≥
  = 
 	`gë_ty≥
+();
+
+37 i‡(
+ty≥
+ =
+SENDACK
+)
+
+38 
+	`£nd_ack
 (
-c⁄nfd
+sockfd
 , 
 buf„r
+, 
+de°addrgp
 );
 
-38 i‡(
+39 i‡(
 ty≥
  =
 FILENAME
 )
 
-39 
+40 
 	`gë_fûíame
-(
-c⁄nfd
-, 
-buf„r
-);
+();
 
-40 i‡(
+41 i‡(
 ty≥
  =
 QUERYINFO
 )
 
-41 
+42 
 	`£nd_fûe_°©us
-(
-c⁄nfd
-, 
-buf„r
-);
+();
 
-42 i‡(
+43 i‡(
 ty≥
  =
 CHUNKINFO
 )
 
-43 
+44 
 	`gë_chunk_öfo
-(
-c⁄nfd
-, 
-buf„r
-, &
-chunköfo
-);
+();
 
-44 i‡(
+45 i‡(
 ty≥
  =
 CLIENTCLOSE
-) {
-
-45 
-	`Clo£
-(
-c⁄nfd
-);
+)
 
 46 
 √xt˛õ¡
  = 1;
 
-52 
-	`‰ì
-(
-buf„r
-);
+51 
+	`‰ìgp
+();
 
-53 
+52 
 	`£rv_‰ì_Æl
 ();
 
-54 
+53 
 	`exô
 (
 SUCCESS
 );
 
-55 
+54 
 	}
 }
 
@@ -6697,79 +7139,85 @@ SUCCESS
 
 	)
 
-8 
-	#MAXTXSIZE
- 10
-
-	)
-
-10 
+9 
 	gfûíame
 [
 MAXFILENAMESIZE
 ];
 
-11 
+10 
 	gfú°chunksize
 ;
 
-12 
+11 
 	gŸhîchunksize
 ;
 
-15 
-£nd_fûe_°©us
-(
-sockfd
-, *
-buf„r
-);
+13 
+mÆlocgp
+();
 
-16 
+14 
+‰ìgp
+();
+
+16 
+£nd_fûe_°©us
+();
+
+17 
 ty≥_t
  
 gë_ty≥
-(
-sockfd
-, *
-buf„r
-);
-
-17 
-gë_fûíame
-(
-sockfd
-, *
-buf„r
-);
+();
 
 18 
-gë_chunk_öfo
-(
-sockfd
-, *
-buf„r
-, 
-chunköfo_t
- *
-öf›
-);
+gë_fûíame
+();
 
 19 
+gë_chunk_öfo
+();
+
+20 
 £rv_‰ì_Æl
 ();
 
-21 
+22 
 ¸óã_sockë
 (
 p‹t
 );
 
-22 
+23 
 gë_li°í_sockë
-(
-sockfd
-);
+();
+
+25 
+	gsockfd
+;
+
+26 *
+	gbuf„r
+;
+
+27 
+chunköfo_t
+ *
+	göfogp
+;
+
+28 
+sockaddr
+ *
+	gde°addrgp
+;
+
+29 
+sockÀn_t
+ 
+	gsockaddrsz
+;
 
 	@../src/server/servutil.c
 
@@ -6777,59 +7225,249 @@ sockfd
 	~"£rvî.h
 "
 
-4 
-	$£nd_fûe_d©a
-(
-sockfd
-, 
-chunköfo_t
- *
-öf›
-) {
+3 
+	$mÆlocgp
+() {
+
+4 
+buf„r
+ = (*)
+	`mÆloc
+(
+MAXBUFSIZE
+ * ());
 
 5 
+de°addrgp
+ = (
+sockaddr
+ *)
+	`mÆloc
+((sockaddr));
+
+6 
+öfogp
+ = (
+chunköfo_t
+ *)
+	`mÆloc
+((chunkinfo_t));
+
+7 i‡(
+buf„r
+ =
+NULL
+ || 
+de°addrgp
+ =NULL || 
+öfogp
+ == NULL) {
+
+8 
+	`¥ötf
+("no space, quitting ... \n");
+
+9 
+	`exô
+(-1);
+
+11 
+	}
+}
+
+13 
+	$‰ìgp
+() {
+
+14 i‡(
+buf„r
+ !
+NULL
+)
+
+15 
+	`‰ì
+(
+buf„r
+);
+
+16 i‡(
+de°addrgp
+ !
+NULL
+)
+
+17 
+	`‰ì
+(
+de°addrgp
+);
+
+18 i‡(
+öfogp
+ !
+NULL
+)
+
+19 
+	`‰ì
+(
+öfogp
+);
+
+20 
+	}
+}
+
+23 
+	$add_∑ckë_idít
+(
+i
+, *
+d©a
+) {
+
+24 *
+wrôî
+ = 
+buf„r
+;
+
+26 
+	`•rötf
+(
+wrôî
+, "%d", 
+FILECHUNK
+);
+
+27 
+wrôî
+ +(
+ty≥_t
+);
+
+28 
+	`•rötf
+(
+wrôî
+, "%lu", 
+	`°æí
+((*)
+d©a
+));
+
+29 
+wrôî
+ +(
+size_t
+);
+
+30 
+	`•rötf
+(
+wrôî
+, "%d", 
+NOERROR
+);
+
+31 
+wrôî
+ += ();
+
+32 
+	`•rötf
+(
+wrôî
+, "%lu", 
+i
+);
+
+33 
+wrôî
+ += ();
+
+34 
+	`°r˝y
+(
+wrôî
+, 
+d©a
+);
+
+35 
+	}
+}
+
+38 
+	$£nd_fûe_d©a
+() {
+
+39 
 FILE
  *
 Â
 ;
 
-6 
+40 
 fd
 ;
 
-7 
+41 
 £ek
  = 
-öf›
+öfogp
 ->
 off
 ;
 
-8 
+42 
 size_t
  
 cou¡
  = 0;
 
-9 
+43 
 tŸÆsize
  = 
-öf›
+öfogp
 ->
 size
 ;
 
-10 
-i
- = 0;
+44 
+À·ovî
+ = 
+tŸÆsize
+;
 
-11 
-buf
+45 
+°¨t
+ = 
+£ek
+;
+
+46 
+íd
+ = 
+£ek
+;
+
+47 
+i
+ = 1;
+
+48 
+d©a
 [
 MAXTXSIZE
  + 1];
 
-13 
+49 *
+wrôî
+;
+
+51 
 	`¥ötf
 ("£ndög from off£à%ldÅÿ%ld from fûê%†...\n", 
 £ek
@@ -6839,7 +7477,7 @@ tŸÆsize
 fûíame
 );
 
-14 
+52 
 fd
  = 
 	`O≥n
@@ -6851,7 +7489,7 @@ O_RDONLY
 FILE_MODE
 );
 
-15 
+53 
 Â
  = 
 	`fd›í
@@ -6859,7 +7497,7 @@ FILE_MODE
 fd
 , "r");
 
-16 
+54 
 	`f£ek
 (
 Â
@@ -6869,121 +7507,227 @@ fd
 SEEK_SET
 );
 
-19 i‡(
-tŸÆsize
+57 
+wrôî
+ = 
+buf„r
+;
+
+58 
+	`bzîo
+(
+d©a
+, 
+MAXTXSIZE
+ + 1);
+
+59 
+	`bzîo
+(
+buf„r
+, 
+MAXBUFSIZE
+ + 1);
+
+60 i‡(
+À·ovî
  - 
 MAXTXSIZE
  < 0)
 
-20 
+61 
 cou¡
  = 
-tŸÆsize
+À·ovî
 ;
 
-22 
+63 
 cou¡
  = 
 MAXTXSIZE
 ;
 
-23 
+65 
 	`Ród
 (
 fd
 , 
-buf
+d©a
 , 
 cou¡
 );
 
-24 
-	`Wrôe
+66 
+	`¥ötf
+("****************************\n");
+
+67 
+	`¥ötf
+("ªad d©®\¿%†\n", 
+d©a
+);
+
+68 
+	`¥ötf
+("****************************\n");
+
+70 
+	`add_∑ckë_idít
+(
+i
+, 
+d©a
+);
+
+71 
+°¨t
+ = 
+íd
+;
+
+72 i‡(
+cou¡
+ !
+MAXTXSIZE
+)
+
+73 
+íd
+ = 
+tŸÆsize
+;
+
+75 
+íd
+ = 
+£ek
+ + (
+i
+ * 
+cou¡
+);
+
+76 
+	`¥ötf
+("****************************\n");
+
+77 
+	`¥ötf
+("£ndögÖackë %ld from %ldÅÿ%ld ...\n", 
+i
+, 
+°¨t
+, 
+íd
+);
+
+79 
+	`¥ötf
+("\¿ %†\t", 
+wrôî
+);
+
+80 
+wrôî
+ +(
+ty≥_t
+);
+
+81 
+	`¥ötf
+("%†\t", 
+wrôî
+);
+
+82 
+wrôî
+ +(
+size_t
+);
+
+83 
+	`¥ötf
+("%†\t", 
+wrôî
+);
+
+84 
+wrôî
+ += ();
+
+85 
+	`¥ötf
+("%†\t", 
+wrôî
+);
+
+86 
+wrôî
+ += ();
+
+87 
+	`¥ötf
+("%†\n", 
+wrôî
+);
+
+88 
+	`¥ötf
+("****************************\n");
+
+90 
+	`Sídto
 (
 sockfd
 , 
-buf
+buf„r
 , 
-cou¡
+PACKETSIZE
+, 
+SENDFLAG
+, 
+de°addrgp
+, 
+SOCKADDRSZ
 );
 
-25 
-tŸÆsize
+91 
+À·ovî
  -
 MAXTXSIZE
 ;
 
-26 
+92 
 i
 ++;
 
-27 } 
-tŸÆsize
+93 } 
+À·ovî
  >= 0);
 
-28 
+94 
 	}
 }
 
-30 
-	$£nd_syn_ack
-(
-sockfd
-, *
-buf„r
-) {
-
-31 
-ack°r
-[] = "ack";
-
-35 
-	`¸óã_buf„r
-(
-SENDACK
-, 
-ack°r
- , 
-buf„r
-);
-
-36 
-	`Wrôe
-(
-sockfd
-, 
-buf„r
-, 
-MAXBUFSIZE
-);
-
-37 
-	}
-}
-
-41 
+98 
 	$¸óã_sockë
 (
 p‹t
 ) {
 
-42 
-sockfd
- = 0;
-
-43 
+99 
 sockaddr_ö
  
 £rv_addr
 ;
 
-46 
+102 
 	`mem£t
 (&
 £rv_addr
 , '0', (serv_addr));
 
-47 
+103 
 £rv_addr
 .
 sö_Ámûy
@@ -6991,7 +7735,7 @@ sö_Ámûy
 AF_INET
 ;
 
-48 
+104 
 £rv_addr
 .
 sö_addr
@@ -7003,7 +7747,7 @@ s_addr
 INADDR_ANY
 );
 
-49 
+105 
 £rv_addr
 .
 sö_p‹t
@@ -7013,95 +7757,45 @@ sö_p‹t
 p‹t
 );
 
-52 
+108 
 sockfd
  = 
 	`Sockë
 (
 AF_INET
 , 
-SOCK_STREAM
+SOCK_DGRAM
 , 0);
 
-53 
+109 
 	`Böd
 (
 sockfd
 , (
 sockaddr
-*)&
+ *)&
 £rv_addr
 , (serv_addr));
 
-54 
-	`Li°í
-(
-sockfd
-, 
-BACKLOG
-);
-
-55  
-sockfd
-;
-
-56 
+110 
 	}
 }
 
-58 
-	$gë_li°í_sockë
-(
-sockfd
-) {
-
-59 
-c⁄nfd
- = 0;
-
-60 
-c⁄nfd
- = 
-	`Ac˚±
-(
-sockfd
-, (
-sockaddr
-*)
-NULL
-, NULL);
-
-63  
-c⁄nfd
-;
-
-64 
-	}
-}
-
-66 
+112 
 	$gë_chunk_öfo
-(
-sockfd
-, *
-buf„r
-, 
-chunköfo_t
- *
-öf›
-) {
+() {
 
-67 
+113 
 év_t
  *
 buf°p
 ;
 
-69 
+115 
 	`¥ötf
 ("getting chunk info ... \n");
 
-71 
+117 
 	`ªåõve_buf„r
 (
 buf„r
@@ -7109,8 +7803,8 @@ buf„r
 buf°p
 );
 
-72 
-öf›
+118 
+öfogp
 ->
 size
  = 
@@ -7119,8 +7813,8 @@ buf°p
 buf_cksize
 ;
 
-73 
-öf›
+119 
+öfogp
 ->
 off
  = 
@@ -7129,47 +7823,39 @@ buf°p
 buf_off£t
 ;
 
-74 
+120 
 	`£nd_fûe_d©a
-(
-sockfd
-, 
-öf›
-);
+();
 
-75 
+121 
 	`my‰ì
 (
 buf°p
 );
 
-76 
+122 
 	}
 }
 
-82 
+127 
 	$£rv_‰ì_Æl
 () {
 
-83 
+129 
 	}
 }
 
-85 
+131 
 	$gë_fûíame
-(
-sockfd
-, *
-buf„r
-) {
+() {
 
-86 
+132 
 év_t
  *
 buff°p
 ;
 
-88 
+134 
 	`ªåõve_buf„r
 (
 buf„r
@@ -7177,7 +7863,7 @@ buf„r
 buff°p
 );
 
-89 
+135 
 	`°r˝y
 (
 fûíame
@@ -7187,63 +7873,89 @@ buff°p
 buf_‚ame
 );
 
-90 
+136 
 	`my‰ì
 (
 buff°p
 );
 
-92 
+138 
 	}
 }
 
-94 
+140 
 ty≥_t
  
 	$gë_ty≥
-(
-sockfd
-, *
-buf„r
-) {
+() {
 
-95 
+141 
 év_t
  *
 buff°p
 ;
 
-96 
+142 
 ty≥_t
  
 ty≥
 ;
 
-97 
+143 
 n
  = 0;
 
-99 
+144 
+sockaddr
+ 
+d°_addr
+ = {0};
+
+145 
+sockÀn_t
+ 
+size
+ = (
+d°_addr
+);
+
+147 
 n
  = 
-	`ªad
+	`ªcv‰om
 (
 sockfd
 , 
 buf„r
 , 
 MAXBUFSIZE
- * ());
+, 
+RECVFLAG
+, &
+d°_addr
+, &
+size
+);
 
-101 i‡(
+148 i‡(
 n
- <= 0) {
+ <= 0)
 
-102  
+149  
 CLIENTCLOSE
 ;
 
-104 
+150 
+	`mem˝y
+ (
+de°addrgp
+, &
+d°_addr
+, (
+sockaddr
+));
+
+151 
 	`ªåõve_buf„r
 (
 buf„r
@@ -7251,7 +7963,7 @@ buf„r
 buff°p
 );
 
-105 
+152 
 ty≥
  = 
 buff°p
@@ -7259,49 +7971,45 @@ buff°p
 buf_ty≥
 ;
 
-106 
+153 
 	`¥ötf
-("gë_ty≥ gŸÅy≥ %d \n", 
+("gŸÅy≥ %d ...\n", 
 buff°p
 ->
 buf_ty≥
 );
 
-107 
+154 
 	`my‰ì
 (
 buff°p
 );
 
-108  
+155  
 ty≥
 ;
 
-109 
+156 
 	}
 }
 
-111 
+158 
 	$£nd_fûe_°©us
-(
-sockfd
-, *
-buf„r
-) {
+() {
 
-112 
+159 
 îr
  = 
 SUCCESS
 ;
 
-113 
+160 
 °©
  
 °
  = {0};
 
-115 
+163 
 îr
  = 
 	`°©
@@ -7311,11 +8019,11 @@ fûíame
 °
 );
 
-116 i‡(
+164 i‡(
 îr
  != 0)
 
-117 
+165 
 	`¸óã_buf„r
 (
 FILEERROR
@@ -7325,7 +8033,7 @@ FILEERROR
 buf„r
 );
 
-119 
+167 
 	`¸óã_buf„r
 (
 FILESIZE
@@ -7337,7 +8045,7 @@ FILESIZE
 buf„r
 );
 
-120 
+168 
 	`¥ötf
 ("£ndög fûêsize: sizê%ld\n", 
 °
@@ -7345,17 +8053,23 @@ buf„r
 °_size
 );
 
-122 
-	`Wrôe
+170 
+	`Sídto
 (
 sockfd
 , 
 buf„r
 , 
 MAXBUFSIZE
+, 
+SENDFLAG
+, 
+de°addrgp
+, 
+SOCKADDRSZ
 );
 
-123 
+171 
 	}
 }
 

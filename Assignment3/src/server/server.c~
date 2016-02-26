@@ -1,23 +1,5 @@
 #include "server.h"
 
-void mallocgp() {
-	buffer = (char *)malloc(MAXBUFSIZE * sizeof(char));
-	destaddrgp = (struct sockaddr *)malloc(sizeof(struct sockaddr));
-	infogp = (chunkinfo_t *)malloc(sizeof(chunkinfo_t));
-	if (buffer == NULL || destaddrgp == NULL || infogp == NULL) {
-		printf("no space, quitting ... \n");
-		exit(-1);
-	}
-}
-
-void freegp() {
-	if (buffer != NULL)
-		free(buffer);
-	if (destaddrgp != NULL)
-		free(destaddrgp);
-	if (infogp != NULL)
-		free(infogp);
-}
 
 int main(int argc, char **argv) {
 	unsigned long port;
@@ -33,13 +15,14 @@ int main(int argc, char **argv) {
 	 */
 	validate_arg(argc, 2, USAGE);
 	retrieve_port(argv[1], &port);
-
+	globi = 3;	
 	create_socket(port);
 	/* connect to a client, accept commands from it
 	 * and sent it the output of the command
 	 */
 		
 	while(1){
+		printf("\n looping...\n");
 		bzero(buffer, MAXBUFSIZE * sizeof(char));
 		/* connect to a new client */
 		if (nextclient == 1) {
