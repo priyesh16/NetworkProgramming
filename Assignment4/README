@@ -1,0 +1,188 @@
+================================================================================
+Network Programming Assignment 4
+Name : Priyesh Vakayil
+================================================================================
+
+Multiple clients make serveral HTTP requests and get respective HTTP responses 
+from servers. All of these communication is done via a proxy. The proxy is
+responsible for parsing incoming requests and deciding whether to filter the 
+request or forward them to the server. The proxy reads hosts from "forbidden-sites" 
+file to decide what hosts need to be filtered out.  Each request-response is handled
+by a thread. The proxy also takes care of logging the requests in a log file. 
+
+================================================================================
+Makefile and Installation
+================================================================================
+
+This Makefile generates a binary, "proxy". 
+together and clean up. The corresponding make commands are: 
+1) proxy : make proxy 
+3) all : make proxy 
+4) clobber/clean : make clean
+5) install	: make proxy and copies other files into bin directory
+
+================================================================================
+Internal Design 
+================================================================================
+The proxy is functionally divided into two modules: the client handling module
+and the server handling module. The client module connects to the client and
+parses the request, validates it, and based on the outcome of the validation
+either sends it to the server module or returns an error to the client. The
+server module connects to the server and gets the response from the server. It
+then sends the response back to the client. 
+
+The client module initially creates a log file, where requests are timestamped
+and maintained as records.
+
+The client connects to the proxy. The client module starts a thread to handle the
+request. The same thread will eventually connect to the requested server and
+send back a response to the client. The state of each connection is maintained
+in a structure conn_t. Threads and the conn_t structure are used so that the
+proxy can run persistently and concurrently.
+
+The client module parses the request and validates it. It validates the following
+1) The request header contains HTTP1.0 or HTTP1.1
+2) The request is a GET or HEAD request
+3) The server hostname is not present in the "forbidden-sites" file.
+4) The server hostname is resolvable to an IP address and can be connected to.
+
+If the validation goes through it passes on the request to the server module.
+Else, it sends a HTTP error response back to the client. 
+The server module connects to the server gets a response from the server and
+sends it back to the client.
+
+================================================================================
+Usage :
+================================================================================
+
+./proxy <port> <logfile>
+Note : If the logfile name is given as stdout, it prints to stdout console
+rather than a log file. I had added this feature for easy testing.
+
+eg)
+./proxy 4562 logfile
+./proxy 3456 stdout
+
+Note: There should be a file called "forbidden-sites" which have banned sites
+in it. My Makefile will add such a default file in the bin directory.
+
+================================================================================
+Testcases :
+================================================================================
+
+1) Validate HTTP1.1 and HTTP1.0 requests
+
+MyLaptop:$echo "GET / HTTP/1.3\r\n\r\n" |nc -n -i 1 127.0.0.1 3456
+HTTP/1.1 400 Bad Request
+
+2) Validate request type as HEAD or GET
+MyLaptop:$echo "POST / HTTP/1.3\r\n\r\n" |nc -n -i 1 127.0.0.1 3456
+HTTP/1.1 400 Bad Request
+
+3) Validate if hostname is in the block list in the "forbidden-sites" file
+MyLaptop:$curl -I www.youtube.com  --proxy 127.0.0.1:3456
+HTTP/1.1 403 Forbidden
+
+4) Validate if valid client hostname has been provided. 
+MyLaptop:$echo "GET / HTTP/1.0\r\n\r\n" |nc -n -i 1 127.0.0.1 3456
+HTTP/1.1 404 Host not found
+
+5) Correct Response
+MyLaptop:$curl -I www.google.com  --proxy 127.0.0.1:3456
+HTTP/1.1 200 OK
+Date: Sun, 28 Feb 2016 22:37:22 GMT
+Expires: -1
+Cache-Control: private, max-age=0
+Content-Type: text/html; charset=ISO-8859-1
+P3P: CP="This is not a P3P policy! See
+https://www.google.com/support/accounts/answer/151657?hl=en for more info."
+Server: gws
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+Set-Cookie:
+NID=77=u2R_DGeqUFsYUwJ0WBOZH4jwE8UMY149focIOagwpj_BEPyd9C6Kr48EmqQgoBylaadi_39IDGJZPanXdO7jICtSIyuoOfAMU_2kwbLFUSm2aFn5KRF8Nxpt8e3aBC3M7kg4Ylv9Xv63E5I;
+expires=Mon, 29-Aug-2016 22:37:22 GMT; path=/; domain=.google.com; HttpOnly
+Transfer-Encoding: chunked
+Accept-Ranges: none
+Vary: Accept-Encoding
+
+6) Persistant Connection:
+--> Start server and kill it after client sends a request 
+MyLaptop:$nc -l 15600
+HEAD HTTP://localhost:15600/ HTTP/1.1
+User-Agent: curl/7.35.0
+Host: localhost:15600
+Accept: */*
+Proxy-Connection: Keep-Alive
+
+^C
+MyLaptop:$
+
+--> Server request 
+
+MyLaptop:$curl -I localhost:15600  --proxy 127.0.0.1:3456
+HTTP/1.1 500 Connection Closed
+
+7) Cuncurrent Connections:
+
+Tested with sending multiple client requests abruptly and the proxy
+handled them without crashing.
+
+8) Sample log file record
+
+MyLaptop:$cat logfile  | tail -10
+
+*****************************************
+Sunday, February 28 2016 3:00 PM: 
+Type : HEAD 
+Requesting Host : curl/7.35.0
+URI : www.google.com
+Server Address : 172.217.1.36
+Action Taken : Forwarded
+Error:  No Error 
+MyLaptop:$
+
+================================================================================
+Handling Errors
+================================================================================
+
+Wherever possible APIs from "unp.h" is used. These APIs are written to handle 
+errors gracefully. If the program uses a system call that doesn't have a 
+corresponding API in "unp.h", then errors are explicitly handled.
+
+The proxy returns protocol errors to the main function of the proxy. And, if
+there are errors the proxy send them to send_error() function which recognizes
+the protocol errors and sends it to the client.
+
+================================================================================
+Known Bugs
+================================================================================
+
+No Known Bugs. I tested using all the testcases I could think of, and what was
+given in the assignment question.
+
+================================================================================
+List of files
+================================================================================
+
+Below are names of the source files and their functionality: 
+lib/libunp.a :	This library is the library compiled from the "Unix Network
+				Programming" book, it contains basic socket functions that
+				handles errors well.  
+head/unp.h   :	This file contains function declarations for the above library
+src/proxy/Makefile   :	proxy Makefile 
+
+Client module of the proxy :
+src/proxy/client.c   
+src/client/cliutil.c 
+src/client/client.h  
+
+Common files used by both modules of the proxy :
+src/common/common.h   
+src/common/common.c  
+
+Server Module of the proxy :
+src/proxy/server.c  
+src/proxy/servutil.c
+src/proxy/server.h 
+

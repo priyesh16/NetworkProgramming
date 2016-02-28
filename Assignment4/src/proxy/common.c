@@ -1,6 +1,51 @@
 #include "common.h"
 
-#define INVALIDFILE "invalid file"
+errortable_t errortab[] = {
+	{BAD_REQUEST, "Bad Request\r\n\r\n"},
+	{FORBIDDEN, "Forbidden\r\n\r\n"},
+	{NOT_FOUND, "Host not found \r\n\r\n"},
+	{METHOD_NOT_ALLOWED, "Method Not Allowed\r\n\r\n"},
+	{NOT_IMPLEMENTED, "Not Implemented\r\n\r\n"},
+	{CONN_CLOSED, "Connection Closed\r\n\r\n"},
+	{-1, ""},
+
+};
+
+void send_error(int conn) {
+	char header[MAXBUFSIZE];
+	char *writer = header; 
+	int i;
+	int sockfd = curconn.servsockfd;
+
+	sprintf(header, "%s", HTTPHEADER);
+	writer = header + strlen(header) - 1;
+	for (i = 0; errortab[i].err != -1; i++) {
+		if (errortab[i].err == curconn.error) {	
+			sprintf(writer, " %d ", errortab[i].err);
+			strcat(writer, errortab[i].errstr);
+		}
+	}
+	Write(sockfd, header, strlen(header)); 
+	printf("Sending error \n%s", header);
+}
+
+void myprintf(int flag, const char *format, ...) {
+	va_list args;
+	time_t secs = time(NULL);
+	struct tm *parse = localtime(&secs);
+	char str[100];
+	
+	if (flag) {
+		strftime(str, 100, "%A, %B %d %Y%l:%M %p", parse);
+		fprintf(fp, "%s: ", str);
+	}
+	va_start (args, format);
+	vfprintf(fp, format, args);
+	va_end(args);
+	fflush(NULL);
+}
+
+
 /* check if ip address is valid */
 int is_ip_addr(char *addr) {
 	struct sockaddr_in sa;
@@ -49,215 +94,8 @@ void validate_arg(int argc, int max, char *useage){
 }
 
 
-/* This function mallocs a tlv_t structure, freeing
- * of the structure should be taken care by the caller
- */
-void freeall() {
-
-}
-
 void myfree(void *ptr) {
 	if (ptr != NULL)
 		free(ptr);
 }
-
-void myexit(const char *errstr) {
-	printf("%s", errstr);
-	freeall();
-	fflush(NULL);
-	exit(1);
-}
-
-int retrieve_buffer(char *buffer, tlv_t **buffstpp) {
-	tlv_t *buffstp;
-	char *writer = buffer;
-	
-	buffstp = (tlv_t *)malloc(sizeof(tlv_t));
-	if (buffstp == NULL)
-		return MEMERR;
-	bzero(buffstp, sizeof(tlv_t)); 
-		
-	buffstp->buf_type = atoi(writer);
-	writer += sizeof(type_t);
-	buffstp->buf_len = atol(writer);
-	writer += sizeof(size_t);
-	buffstp->buf_err = atoi(writer);
-	writer += sizeof(int);
-
-	switch (buffstp->buf_type) {
-		case FILENAME:
-			buffstp->buf_fname = (char *)malloc(MAXBUFSIZE * sizeof(char));
-				if (buffstp->buf_fname == NULL)
-				return MEMERR;
-			bzero(buffstp->buf_fname, MAXBUFSIZE * sizeof(char)); 
-			strcpy(buffstp->buf_fname, writer);
-			//printf("\nrb : %d \t%ld \t%d %s\t \n", buffstp->buf_type, buffstp->buf_len, 
-			//	buffstp->buf_err, buffstp->buf_fname);
-			break;
-		case FILESIZE:
-			buffstp->buf_fsize = atol(writer);
-			//printf("\nrb : %d \t%ld \t%d \t%lu \n", buffstp->buf_type, buffstp->buf_len, 
-			//	buffstp->buf_err, buffstp->buf_fsize);
-			break;
-		case FILECHUNK:
-			buffstp->buf_data = (char *)malloc(MAXBUFSIZE * sizeof(char));
-			if (buffstp->buf_data == NULL)
-				return MEMERR;
-			bzero(buffstp->buf_data, MAXBUFSIZE * sizeof(char)); 
-			strcpy(buffstp->buf_data, writer);
-			//printf("\n rb %d \t%ld \t%d \t%s \n", buffstp->buf_type, buffstp->buf_len, 
-			//	buffstp->buf_err, buffstp->buf_data);
-			break;
-		case FILEERROR:
-			buffstp->buf_error = (char *)malloc(MAXBUFSIZE * sizeof(char));
-			if (buffstp->buf_error == NULL)
-				return MEMERR;
-			bzero(buffstp->buf_error, MAXBUFSIZE * sizeof(char)); 
-			strcpy(buffstp->buf_error, writer);
-			//printf("\nrb : %d \t%ld \t%d %s\t \n", buffstp->buf_type, buffstp->buf_len, 
-			//	buffstp->buf_err, buffstp->buf_error);
-			break;
-		case QUERYINFO:
-			buffstp->buf_error = (char *)malloc(MAXBUFSIZE * sizeof(char));
-			if (buffstp->buf_error == NULL)
-				return MEMERR;
-			bzero(buffstp->buf_error, MAXBUFSIZE * sizeof(char)); 
-
-			strcpy(buffstp->buf_error, writer);
-			//printf("\nrb : %d \t%ld \t%d %s\t \n", buffstp->buf_type, buffstp->buf_len, 
-			//	buffstp->buf_err, buffstp->buf_error);
-			break;		
-		case CHUNKINFO:
-			buffstp->buf_cksize = atol(writer);
-			writer += sizeof(unsigned long);
-			buffstp->buf_offset = atol(writer);
-			//printf("\nrb : %d \t%ld \t%d \t%lu \t%lu \n", buffstp->buf_type, buffstp->buf_len, 
-			//	buffstp->buf_err, buffstp->buf_offset, buffstp->buf_cksize);
-			break;
-		case SENDACK:
-			buffstp->buf_ackstr = (char *)malloc(MAXBUFSIZE * sizeof(char));
-			if (buffstp->buf_ackstr == NULL)
-				return MEMERR;
-			bzero(buffstp->buf_ackstr, MAXBUFSIZE * sizeof(char)); 
-
-			strcpy(buffstp->buf_error, writer);
-			//printf("\nrb : %d \t%ld \t%d %s\t \n", buffstp->buf_type, buffstp->buf_len, 
-			//	buffstp->buf_err, buffstp->buf_ackstr);
-			break;
-	}
-
-	*buffstpp = buffstp;
-	return SUCCESS;
-}
-
-
-void create_buffer(type_t type, void *val, char *buffer) {
-	char *writer = buffer;
-	size_t len = sizeof(type_t) + sizeof(size_t) +  sizeof(int);
-
-	sprintf(writer, "%d", type);
-	writer += sizeof(type_t);
-
-	switch (type) {
-		case FILENAME:
-			len = len + strlen((char *)val);
-			sprintf(writer, "%lu", len);
-			writer += sizeof(size_t);
-			sprintf(writer	, "%d", NOERROR);
-			writer += sizeof(int);
-			sprintf(writer, "%s", (char *)val);
-			break;
-		case FILESIZE:
-			len = len + strlen((char *)val);
-			sprintf(writer, "%lu", sizeof(int));
-			writer += sizeof(size_t);
-			sprintf(writer	, "%d", NOERROR);
-			writer += sizeof(int);
-			sprintf(writer, "%ld", *(off_t *)val);
-			break;
-		case FILECHUNK:
-			sprintf(writer, "%lu", strlen((char *)val));
-			writer += sizeof(size_t);
-			sprintf(writer	, "%d", NOERROR);
-			writer += sizeof(int);
-			sprintf(writer, "%s", (char *)val);
-			break;
-		case FILEERROR:
-			sprintf(writer, "%lu", sizeof(int));
-			writer += sizeof(ssize_t);
-			sprintf(writer	, "%d", *(int *)val);
-			writer += sizeof(int);
-			sprintf(writer, "%s", INVALIDFILE);
-			break;
-		case QUERYINFO:
-			sprintf(writer, "%lu", sizeof(int));
-			writer += sizeof(ssize_t);
-			sprintf(writer	, "%d", *(int *)val);
-			writer += sizeof(int);
-			sprintf(writer, "%s", INVALIDFILE);
-			break;
-		case CHUNKINFO:
-			sprintf(writer, "%lu", sizeof(chunkinfo_t));
-			writer += sizeof(size_t);
-			sprintf(writer, "%d", NOERROR);
-			writer += sizeof(int);
-			sprintf(writer, "%ld", ((chunkinfo_t *)val)->size);
-			writer += sizeof(unsigned long);
-			sprintf(writer, "%ld", ((chunkinfo_t *)val)->off);
-			writer += sizeof(unsigned long);
-			break;
-		case SENDACK:
-			len = len + strlen((char *)val);
-			sprintf(writer, "%lu", len);
-			writer += sizeof(size_t);
-			sprintf(writer	, "%d", NOERROR);
-			writer += sizeof(int);
-			sprintf(writer, "%s", (char *)val);
-			break;
-	}
-}
-
-void send_error(int conn) {
-	myprintf("Sending error \n");
-}
-
-void send_ack(int sockfd, char *buffer, struct sockaddr *destaddrp) {
-	char ackstr[] = "ack";
-	char address[20];
-	struct sockaddr_in *destaddr_inp= (struct sockaddr_in *)destaddrp;
-	unsigned short port = destaddr_inp->sin_port;
-
-	inet_ntop(AF_INET, &(destaddr_inp->sin_addr), address, INET_ADDRSTRLEN);
-		
-	
-	create_buffer(SENDACK, ackstr , buffer);
-	Sendto(sockfd, buffer, MAXBUFSIZE, SENDFLAG, destaddrp, SOCKADDRSZ);
-	printf("sent ack to %s:%u ... \n", address, port);
-}
-
-int get_ack(int sockfd, char *buffer) {
-	tlv_t *bufstp;	
-	struct sockaddr_in dst_addr;
-	socklen_t size = sizeof(struct sockaddr_in);
-	fd_set readfd;
-	struct timeval tv;
-	int maxfd = sockfd + 1;
-	int n = 0;
-
-	FD_ZERO(&readfd);
-	FD_SET(sockfd, &readfd);
-	tv.tv_sec = 1;
-	tv.tv_usec = 0;
-	Select(maxfd, &readfd, NULL, NULL, &tv);
-
-	if (FD_ISSET(sockfd, &readfd)) {
-		n = recvfrom(sockfd, buffer, MAXBUFSIZE, RECVFLAG, (struct sockaddr *)&dst_addr, &size);
-		retrieve_buffer(buffer, &bufstp);
-	}
-	if (n == 0)
-		return 1;
-	else
-		return 0;
-}
-	
 

@@ -16,110 +16,65 @@
 #include <arpa/inet.h>
 #include "../../head/unp.h"
 
+#define HTTPHEADER "HTTP/1.1 "
 #define MAXPORTNO 65535
 #define SUCCESS 1
 #define ERROR	0		
-#define BASE 10
-#define PROMPT ">:$"
-#define ACK "ack" 
-#define MAXDIGITS 5
-#define NOOUT "No Output \n"
-#define CMDLEN 100
-#define CHUNKINFOLEN 100 
-#define EXITCMD "exit"
-#define MAXLINES 10
-#define MAXLINELEN 35 
-#define OUTLEN 332
 #define K	1024
 #define MAXBUFSIZE (1024 * K)
-#define MAXADDRSIZE 15
 #define MAXFILENAMESIZE 50
 #define MAXHOSTNAMESIZE 50
 #define MEMERRSTR "Err: Heap memory full..exiting"
-#define NOERROR 0
-#define NEWLINE '\n'
-#define LOCALHOST "127.0.0.1"
-#define LOCALHOSTSTR "localhost"
-#define FILEINVALIDSTR "\n> Err: Invalid File, try again\n"
-#define SENDFLAG    0
-#define RECVFLAG    0
 #define SOCKADDRSZ sizeof(struct sockaddr)
-#define MAXTXSIZE 10
-#define HEADERLEN (sizeof(type_t) + sizeof(size_t) + sizeof(int) + sizeof(unsigned long))
-#define PACKETSIZE MAXTXSIZE + HEADERLEN	
-#define PROMPTSTR "> Print the filename you want to download?(exit to quit)\n>"
-#define MAXCONNECTIONS 10
+#define MAXCONNECTIONS 100
 #define curconn	connection[conn] 
+#define USAGE "\n ./proxy <port no (1-65535)> <log filename (stdout for printing to console)> \n"
+#define BACKLOG 1
+#define BASE 10
+#define MAXERRLEN 100
+#define MAXLINELEN 100
+#define FORBIDFILE	"forbidden-sites"
+
+typedef enum error_s {
+	MEMERR,
+	BAD_REQUEST = 400,
+	NOT_FOUND = 404,
+	FORBIDDEN = 403,
+	METHOD_NOT_ALLOWED = 405,
+	CONN_CLOSED = 500,
+	NOT_IMPLEMENTED = 501,
+}error_t;
 
 typedef struct conn_s {
 	int	servsockfd;
 	int	clisockfd;
 	short	cliport;
 	int	type;
+	int	version;
+	char	uri[MAXHOSTNAMESIZE];
 	char	hostname[MAXHOSTNAMESIZE];
 	struct	in_addr *cliaddr;
-	int	error;
+	error_t	error;
 	char 	request[MAXBUFSIZE];
 	char 	response[MAXBUFSIZE];
 	pthread_t thread;
 }conn_t;
 
 conn_t connection[MAXCONNECTIONS];
+FILE *fp;
+
+
+typedef struct errortable_s {
+	error_t err;
+	char errstr[MAXERRLEN];
+}errortable_t; 
 
 typedef enum type_s {
 	HEAD,
 	GET,
-	FILENAME,
-	QUERYINFO,
-	FILESIZE,
-	CHUNKINFO,
-	FILECHUNK,
-	FILEERROR,
-	SENDACK,
-	CLIENTCLOSE,
 }type_t;
 
-typedef enum error_s {
-	MEMERR,
-	FORBIDDEN = 403,
-	METHOD_NOT_ALLOWED = 405,
-	NOT_IMPLEMENTED = 501,
-}error_t;
-
-typedef struct chuckinfo_s {
-	unsigned long size;
-	unsigned long off;
-}chunkinfo_t;
-
-typedef struct filechunk_s {
-	unsigned long ident;
-	char *chunkdata;
-}filechunk_t;
-
-
-typedef struct tlv_s {
-	type_t buf_type;
-	size_t buf_len;
-	int    buf_err;
-	union {
-		off_t filesize; // For FILESIZE
-		chunkinfo_t chunkinfo; // For CHUNKINFO
-		filechunk_t filechunk; // For FILECHUNK
-		char *errorstr; // For FILERROR
-		char *filename; // For FILENAME
-		char *ackstr; // For FILENAME
-	}bufval_t;
-	#define buf_fsize  bufval_t.filesize
-	#define buf_error  bufval_t.errorstr
-	#define buf_ident  bufval_t.filechunk.ident
-	#define buf_data   bufval_t.filechunk.chunkdata
-	#define buf_ckinfo bufval_t.chunkinfo.size
-	#define buf_cksize bufval_t.chunkinfo.size
-	#define buf_offset bufval_t.chunkinfo.off
-	#define buf_fname  bufval_t.filename
-	#define buf_ackstr  bufval_t.ackstr
-}tlv_t;
-
+void myprintf(int flag, const char *format, ...); 
 void myfree(void *ptr);
 void retrieve_port(const char* portstr, short *portno);
 void Pthread_create(pthread_t *tid, const pthread_attr_t *attr,
@@ -137,13 +92,10 @@ int isipaddr(char *addr);
 
 /* check if the port number is valid */
 int isport(unsigned long port); 
+int send_response(int conn);
 
 void freeall();
 void myexit(const char *errstr);
-int retrieve_buffer(char *buffer, tlv_t **buffstpp);
-void create_buffer(type_t type, void *val, char *buffer);
-void send_ack(int sockfd, char *buffer, struct sockaddr *destaddrp);
-int get_ack(int sockfd, char *buffer);
-int	send_request(int conn);
+int  send_request(int conn);
 void send_error(int conn);
 #endif
