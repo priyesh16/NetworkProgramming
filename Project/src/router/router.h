@@ -16,8 +16,6 @@
 #include <arpa/inet.h>
 #include "../../head/unp.h"
 
-#define HTTPHEADER "HTTP/1.1 "
-
 #define MAXADDRSIZE 50
 #define MAXPORTNO 65535
 #define SUCCESS 1
@@ -30,12 +28,14 @@
 #define SOCKADDRSZ sizeof(struct sockaddr)
 #define MAXCONNECTIONS 100
 #define curconn	connection[conn] 
-#define USAGE "\n ./proxy <port no (1-65535)> <log filename (stdout for printing to console)> \n"
+#define USAGE "\n ./router <Node Name (A, B, C ...)> <port no (1-65535)> \n"
 #define BACKLOG 1
 #define BASE 10
 #define MAXERRLEN 100
 #define MAXLINELEN 100
-#define FORBIDFILE	"forbidden-sites"
+#define NBR_CONF_FILE "neighbor.config"
+#define NODE_CONF_FILE "node.config"
+#define MAXNBRS 15
 
 void start_log(char *filename);
 void mallocgp();
@@ -46,7 +46,7 @@ int read_packet(int connno);
 
 int parse_packet(int conn);
 int get_ip(int conn);
-int create_socket(unsigned short port);
+void create_socket();
 int get_listen_socket(int sockfd);
 
 void send_file_data();
@@ -55,6 +55,34 @@ int validate_hostname(int conn);
 int validate_type(int conn); 
 void print_loginfo(int conn , int flag);
 void start_log(char *filename); 
+
+typedef struct nbr_s {
+	char	nbr_name;
+	int		nbr_cost;
+	struct sockaddr_in	sockaddr;
+}nbr_t;
+
+#define nbrfam sockaddr.sin_family
+#define nbraddr sockaddr.sin_addr
+#define nbrport sockaddr.sin_port
+
+
+typedef struct node_s {
+	char	node_name;
+	int		node_cost;
+	nbr_t	node_nbr[MAXNBRS];
+	int		node_nbr_cnt;
+	int		node_sockfd;
+	unsigned short node_port;
+} node_t;
+
+node_t selfnode;
+
+#define mynbrcnt selfnode.node_nbr_cnt
+#define myname	selfnode.node_name
+#define mysock	selfnode.node_sockfd
+#define myport	selfnode.node_port
+#define mynbr selfnode.node_nbr
 
 typedef enum error_s {
 	MEMERR,
@@ -99,7 +127,7 @@ pthread_mutex_t lock;
 
 void myprintf(int flag, const char *format, ...); 
 void myfree(void *ptr);
-void retrieve_port(const char* portstr, short *portno);
+void retrieve_port(const char* portstr, unsigned short *portno);
 void Pthread_create(pthread_t *tid, const pthread_attr_t *attr,
 		               void * (*func)(void *), void *arg);
 void Pthread_join(pthread_t tid, void **status);
