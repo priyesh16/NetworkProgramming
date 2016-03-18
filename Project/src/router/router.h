@@ -15,6 +15,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include "../../head/unp.h"
+#include "mytimer.h"
 
 #define MAXADDRSIZE 50
 #define MAXPORTNO 65535
@@ -38,13 +39,25 @@
 #define MAXNBRS 15
 #define SENDFLAG    0
 #define RECVFLAG    0
+#define RX_RETRYTIMER 4
+#define PER_TIMER 3
+#define RX_TIMER 1
+#define TX_TIMER 1
+#define TIMER_CB 1
+
+typedef enum state_s {
+	ALIVE,
+	DEAD,
+} state_t;
 
 typedef struct nbr_s {
-	int	alive;
+	int		nbr_alive;
 	pthread_t thread;
 	char	nbr_name;
 	int		nbr_cost;
+	int		nbr_oldcost;
 	struct sockaddr_in	sockaddr;
+	int		nbr_stillrx;
 }nbr_t;
 
 #define nbrfam sockaddr.sin_family
@@ -82,7 +95,8 @@ void Pthread_create(pthread_t *tid, const pthread_attr_t *attr,
 		               void * (*func)(void *), void *arg);
 void Pthread_join(pthread_t tid, void **status);
 void *thread_func(void *null);
-void *parthread_func(void *null);
+void *parthread_timer(void *null);
+void *parthread_rx(void *null);
 
 void start_log(char *filename);
 void mallocgp();
