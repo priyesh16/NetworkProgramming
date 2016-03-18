@@ -21,7 +21,7 @@
 #define SUCCESS 1
 #define ERROR	0		
 #define K	1024
-#define MAXBUFSIZE (1024 * K)
+#define MAXBUFSIZE 64 
 #define MAXFILENAMESIZE 50
 #define MAXHOSTNAMESIZE 50
 #define MEMERRSTR "Err: Heap memory full..exiting"
@@ -36,27 +36,12 @@
 #define NBR_CONF_FILE "neighbor.config"
 #define NODE_CONF_FILE "node.config"
 #define MAXNBRS 15
-
-void start_log(char *filename);
-void mallocgp();
-void freegp();
-
-void send_file_status();
-int read_packet(int connno);
-
-int parse_packet(int conn);
-int get_ip(int conn);
-void create_socket();
-int get_listen_socket(int sockfd);
-
-void send_file_data();
-int get_hostname(int conn);
-int validate_hostname(int conn);
-int validate_type(int conn); 
-void print_loginfo(int conn , int flag);
-void start_log(char *filename); 
+#define SENDFLAG    0
+#define RECVFLAG    0
 
 typedef struct nbr_s {
+	int	alive;
+	pthread_t thread;
 	char	nbr_name;
 	int		nbr_cost;
 	struct sockaddr_in	sockaddr;
@@ -74,6 +59,7 @@ typedef struct node_s {
 	int		node_nbr_cnt;
 	int		node_sockfd;
 	unsigned short node_port;
+	pthread_t node_thread;
 } node_t;
 
 node_t selfnode;
@@ -83,47 +69,11 @@ node_t selfnode;
 #define mysock	selfnode.node_sockfd
 #define myport	selfnode.node_port
 #define mynbr selfnode.node_nbr
+#define mysthread selfnode.node_thread
 
-typedef enum error_s {
-	MEMERR,
-	BAD_REQUEST = 400,
-	NOT_FOUND = 404,
-	FORBIDDEN = 403,
-	METHOD_NOT_ALLOWED = 405,
-	CONN_CLOSED = 500,
-	NOT_IMPLEMENTED = 501,
-}error_t;
-
-typedef struct conn_s {
-	int		servsockfd;
-	int		clisockfd;
-	short	cliport;
-	int		type;
-	int		version;
-	char	uri[MAXHOSTNAMESIZE];
-	char	hostname[MAXHOSTNAMESIZE];
-	struct	in_addr *cliaddr;
-	error_t	error;
-	char 	request[MAXBUFSIZE];
-	char 	response[MAXBUFSIZE];
-	pthread_t thread;
-}conn_t;
-
-conn_t connection[MAXCONNECTIONS];
-FILE *fp;
-
-
-typedef struct errortable_s {
-	error_t err;
-	char errstr[MAXERRLEN];
-}errortable_t; 
-
-typedef enum type_s {
-	HEAD,
-	GET,
-}type_t;
-
-pthread_mutex_t lock;
+int validate_type(int conn); 
+void print_loginfo(int conn , int flag);
+void start_log(char *filename); 
 
 void myprintf(int flag, const char *format, ...); 
 void myfree(void *ptr);
@@ -131,8 +81,24 @@ void retrieve_port(const char* portstr, unsigned short *portno);
 void Pthread_create(pthread_t *tid, const pthread_attr_t *attr,
 		               void * (*func)(void *), void *arg);
 void Pthread_join(pthread_t tid, void **status);
-void *thread_func(void *serverno);
+void *thread_func(void *null);
+void *parthread_func(void *null);
 
+void start_log(char *filename);
+void mallocgp();
+void freegp();
+
+void send_file_status();
+int read_packet(int connno);
+
+int parse_packet(int conn);
+int get_ip(int conn);
+void create_socket();
+int get_listen_socket(int sockfd);
+
+void send_file_data();
+int get_hostname(int conn);
+int validate_hostname(int conn);
 /* validate the number of arguments and print useage 
  *  * if invalid 
  *   */

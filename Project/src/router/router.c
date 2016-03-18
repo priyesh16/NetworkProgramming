@@ -50,8 +50,9 @@ void validate_arg(int argc, int max, char *useage){
 void print_nbr_table() {
 	int i;
 
+	printf("Neighbour\tCost\tAddress\tPort\n");
 	for (i = 0; i < mynbrcnt; i++) {
-		printf("Neighbour:Cost:Address:Port %c:%d:%x:%d \n", mynbr[i].nbr_name, mynbr[i].nbr_cost, mynbr[i].nbraddr, mynbr[i].nbrport);
+		printf("\t%c\t%d\t%x\t%d \n", mynbr[i].nbr_name, mynbr[i].nbr_cost, mynbr[i].nbraddr, mynbr[i].nbrport);
 	}
 }
 
@@ -71,8 +72,10 @@ void get_nbrs() {
 			continue;
 
 		token = strtok(buffer, " ");
-		if (!strchr(token, selfnode.node_name))
+		if (!strchr(token, selfnode.node_name)) {
 			mynbr[mynbrcnt].nbr_name = token[0];
+			token = strtok(NULL, " ");
+		}
 		else {
 			token = strtok(NULL, " ");
 			mynbr[mynbrcnt].nbr_name = token[0];
@@ -80,6 +83,70 @@ void get_nbrs() {
 		token = strtok(NULL, " ");
 		mynbr[mynbrcnt].nbr_cost = atoi(token);
 		mynbrcnt++;
+	}
+}
+
+void start_communication() {
+	int i;
+	int nbr[MAXNBRS];
+
+	Pthread_create(&(mysthread), NULL, &parthread_func, NULL);
+	for (i = 0; i < mynbrcnt; i++) {
+		nbr[i] = i;
+		Pthread_create(&(mynbr[i].thread), NULL, &thread_func, &nbr[i]);
+	}
+	for (i = 0; i < mynbrcnt; i++) {
+		Pthread_join(mynbr[i].thread, NULL);
+	}
+}
+
+void *parthread_func(void *nbr) {
+	struct sockaddr_in dstsockaddr;
+	int i;
+	fd_set readfd;
+	struct timeval tv;
+	int maxfd = MAXNBRS;
+	unsigned short dstport;
+	struct in_addr dstaddr;
+	socklen_t size;
+	char buffer[MAXBUFSIZE];
+
+	while(1) {
+		tv.tv_sec = 1;
+		tv.tv_usec = 0;
+		FD_ZERO(&readfd);
+		FD_SET(mysock, &readfd);
+		Select(maxfd, &readfd, NULL, NULL, &tv);
+		if (!FD_ISSET(mysock, &readfd)) 
+			continue;
+		Recvfrom(mysock, buffer, MAXBUFSIZE, RECVFLAG, 
+				(struct sockaddr *)&dstsockaddr, &size);
+		printf("Got %s\n", buffer);
+		dstaddr = dstsockaddr.sin_addr;
+		dstport = dstsockaddr.sin_port;
+		for (i = 0; i < mynbrcnt; i++) {
+			if ((mynbr[i].nbraddr.s_addr == dstaddr.s_addr) && 
+					(mynbr[i].nbrport == dstport))
+
+				printf("got message from node %c \n", mynbr[i].nbr_name);
+		}
+	}
+}
+
+
+void *thread_func(void *nbr) {
+	int nbrno = *(int *)nbr;
+	char buffer[MAXBUFSIZE];
+	struct sockaddr *destaddrp = (struct sockaddr *)&(mynbr[nbrno].sockaddr);
+	int n;
+
+	while(1) {
+		bzero(buffer, MAXBUFSIZE);
+		sprintf(buffer, "%d", mynbr[nbrno].nbr_cost);
+		n = sendto(mysock, buffer, strlen(buffer) + 1, SENDFLAG, destaddrp, SOCKADDRSZ);
+		if (n)
+			printf("Sent %d \n", atoi(buffer));
+		sleep(3);
 	}
 }
 
@@ -104,6 +171,7 @@ void get_nbr_info() {
 			token = strtok(NULL, " "); // Tokenized address
 			token = strtok(NULL, " "); // Tokenized port
 			retrieve_port(token, &selfnode.node_port);
+			printf("\nMy Node Details: %c:%d \n", myname, selfnode.node_port);
 			continue;
 		}
 
@@ -136,6 +204,7 @@ void create_socket() {
 
 	Bind(mysock, (SA *)&sockaddr, SOCKADDRSZ);
 }
+
 int main(int argc, char **argv) {
 	/* Validate and retrieve the port from input arguments
 	 * and open a socket bound to the port
@@ -143,13 +212,10 @@ int main(int argc, char **argv) {
 	validate_arg(argc, 3, USAGE);
 	selfnode.node_name = argv[1][0];
 
-	retrieve_port(argv[2], &selfnode.node_port);
-
-	printf("\nMy Node Details: %c:%d \n", myname, selfnode.node_port);
-	
 	// Get neighbour details from the neibour config file 
 	get_nbrs();
 	get_nbr_info();
+	start_communication();
 
 	// Create and bind a socket
 	create_socket();
