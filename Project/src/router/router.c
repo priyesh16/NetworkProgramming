@@ -152,7 +152,6 @@ void *parthread_rx(void *nbr) {
 	fd_set readfd;
 	struct timeval tv;
 	int maxfd = mysock + 1;
-	int retry = RX_RETRYTIMER;
 	unsigned short dstport;
 	struct in_addr dstaddr;
 	socklen_t size;
@@ -165,24 +164,28 @@ void *parthread_rx(void *nbr) {
 		tv.tv_usec = 0;
 		Select(maxfd, &readfd, NULL, NULL, &tv);
 		if (!FD_ISSET(mysock, &readfd)) {
-			retry--;
-			if (retry == 0) {
-				for (i = 0; i < mynbrcnt; i++)
-					mynbr[i].nbr_stillrx = 0;
-				retry = RX_RETRYTIMER;
+			for (i = 0; i < mynbrcnt; i++) {
+				mynbr[i].nbr_retry--;
+				if (mynbr[i].nbr_retry < 0) {
+						mynbr[i].nbr_stillrx = 0;
+						mynbr[i].nbr_retry = RX_RETRYTIMER;
+				}
 			}
 			continue;
 		}
-		retry = RX_RETRYTIMER;
 		Recvfrom(mysock, buffer, MAXBUFSIZE, RECVFLAG, 
 				(struct sockaddr *)&dstsockaddr, &size);
 		dstaddr = dstsockaddr.sin_addr;
 		dstport = dstsockaddr.sin_port;
 		for (i = 0; i < mynbrcnt; i++) {
-			mynbr[i].nbr_stillrx = 0;
+			mynbr[i].nbr_retry--;
+			if (mynbr[i].nbr_retry < 0) {
+				mynbr[i].nbr_stillrx = 0;
+				mynbr[i].nbr_retry = RX_RETRYTIMER;
+			}
 			if ((mynbr[i].nbraddr.s_addr == dstaddr.s_addr) && 
 					(mynbr[i].nbrport == dstport)) {
-				printf("Got from %c", mynbr[i].nbr_name); 
+				//printf("Got from %c \n", mynbr[i].nbr_name); 
 				mynbr[i].nbr_stillrx = 1;
 			}
 		}

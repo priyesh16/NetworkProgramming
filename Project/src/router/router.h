@@ -22,7 +22,7 @@
 #define SUCCESS 1
 #define ERROR	0		
 #define K	1024
-#define MAXBUFSIZE 64 
+#define MAXBUFSIZE sizeof(int) 
 #define MAXFILENAMESIZE 50
 #define MAXHOSTNAMESIZE 50
 #define MEMERRSTR "Err: Heap memory full..exiting"
@@ -39,7 +39,7 @@
 #define MAXNBRS 15
 #define SENDFLAG    0
 #define RECVFLAG    0
-#define RX_RETRYTIMER 4
+#define RX_RETRYTIMER 9 
 #define PER_TIMER 3
 #define RX_TIMER 1
 #define TX_TIMER 1
@@ -58,6 +58,7 @@ typedef struct nbr_s {
 	int		nbr_oldcost;
 	struct sockaddr_in	sockaddr;
 	int		nbr_stillrx;
+	int		nbr_retry;
 }nbr_t;
 
 #define nbrfam sockaddr.sin_family
