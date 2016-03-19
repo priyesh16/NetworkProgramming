@@ -18,10 +18,12 @@
 #include "mytimer.h"
 
 #define MAXADDRSIZE 50
+#define MAXTIMESIZE 50
 #define MAXPORTNO 65535
 #define SUCCESS 1
 #define ERROR	0		
 #define K	1024
+#define INFINITY 17
 #define MAXBUFSIZE sizeof(int) 
 #define MAXFILENAMESIZE 50
 #define MAXHOSTNAMESIZE 50
@@ -44,6 +46,13 @@
 #define RX_TIMER 1
 #define TX_TIMER 1
 #define TIMER_CB 1
+#define MAXNODES 20
+
+int cost[MAXNODES][MAXNODES];
+int distance[MAXNODES + MAXNODES];
+int totalnodes;
+
+	
 
 typedef enum state_s {
 	ALIVE,

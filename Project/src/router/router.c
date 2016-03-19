@@ -1,5 +1,6 @@
 #include "router.h"
 
+mytimer_t rxtimer = TIMER_INIT;
 
 /* check if ip address is valid */
 int is_ip_addr(char *addr) {
@@ -46,13 +47,57 @@ void validate_arg(int argc, int max, char *useage){
 	}
 }
 
+void bellmanford(int n,int v) {	
+	int i, j, k, u;
+
+	// Fill up cost table
+	for (i = 1; i < totalnodes; i++) {
+		for (j = 1; j < totalnodes; j++) {
+			cost[i][j] = 17;
+		}
+	}
+
+	// Run Bellman Ford
+	for(i = 1; i <= n; i++)
+		distance[i] = cost[v][i];
+
+	for(k = 2; k <= n-1; k++) {
+		for(u = 1; u <= n; u++) {
+			if(u == v)
+				continue;
+			for(i = 1; i<=n; i++) {
+				if(i == v)
+					continue;
+				if(distance[u] > distance[i] + cost[i][u])
+					distance[u] = distance[i] + cost[i][u];
+			}
+		}
+	}
+}
 
 void print_nbr_table() {
 	int i;
+	char address[MAXADDRSIZE];
+	int cost;
+	time_t secs = time(NULL);
+	struct tm *parse = localtime(&secs);
+	char str[MAXTIMESIZE];
+	unsigned short port;
+	char name;
 
-	printf("Neighbour\tCost\tAddress\tPort\n");
+	strftime(str, 100, "%A, %B %d %Y%l:%M %p", parse);
+	printf("%s: \n", str);
+	printf("Neighbour\tCost\t\tAddress\t\tPort\n");
 	for (i = 0; i < mynbrcnt; i++) {
-		printf("\t%c\t%d\t%x\t%d \n", mynbr[i].nbr_name, mynbr[i].nbr_cost, mynbr[i].nbraddr, mynbr[i].nbrport);
+		strcpy(address, inet_ntoa(mynbr[i].nbraddr));
+		cost = mynbr[i].nbr_cost;
+		name = mynbr[i].nbr_name;
+		port = mynbr[i].nbrport;
+
+		if (cost >= 17)
+			printf("\t%c\t%s\t%s\t%d \n", name, "infinity", address, port);
+		else
+			printf("\t%c\t%d\t\t%s\t%d \n", name, cost, address, port);
 	}
 }
 
@@ -85,7 +130,6 @@ void get_nbrs() {
 		mynbr[mynbrcnt].nbr_oldcost = atoi(token);
 		mynbrcnt++;
 	}
-	print_nbr_table();
 }
 
 void start_communication() {
@@ -102,7 +146,6 @@ void start_communication() {
 		Pthread_join(mynbr[i].thread, NULL);
 	}
 }
-mytimer_t timerrx = TIMER_INIT;
 
 void timer_callback(time_t now) {
 	int i;
@@ -120,7 +163,7 @@ void timer_callback(time_t now) {
 		}
 		else {
 			if (mynbr[i].nbr_alive != DEAD) {
-				mynbr[i].nbr_cost = 0;
+				mynbr[i].nbr_cost = INFINITY;
 				mynbr[i].nbr_alive = DEAD;
 				printf("%c is dead \n", mynbr[i].nbr_name);
 				print_nbr_table();
@@ -134,15 +177,16 @@ void *parthread_timer(void *nbr) {
 	struct timeval tv;
 	int maxfd = mysock + 1;
 
-	timer_start_periodic(&timerrx, PER_TIMER, timer_callback);
+	timer_start_periodic(&rxtimer, PER_TIMER, timer_callback);
 
 	while(1) {
 		tv_init(&tv);
-		tv_timer(&tv, &timerrx);
+		tv_timer(&tv, &rxtimer);
 		FD_ZERO(&readfd);
 		Select(maxfd, &readfd, NULL, NULL, &tv);
-		timer_check(&timerrx);
+		timer_check(&rxtimer);
 	}
+	return NULL;
 }
 
 
@@ -190,6 +234,7 @@ void *parthread_rx(void *nbr) {
 			}
 		}
 	}
+	return NULL;
 }
 
 
@@ -198,17 +243,18 @@ void *thread_func(void *nbr) {
 	char buffer[MAXBUFSIZE];
 	struct sockaddr *destaddrp = 
 		(struct sockaddr *)&(mynbr[nbrno].sockaddr);
-	int n;
+	//int n;
 
 	while(1) {
 		bzero(buffer, MAXBUFSIZE);
 		sprintf(buffer, "%d", mynbr[nbrno].nbr_cost);
-		n = sendto(mysock, buffer, strlen(buffer) + 1, 
+		Sendto(mysock, buffer, strlen(buffer) + 1, 
 				SENDFLAG, destaddrp, SOCKADDRSZ);
 		//if (n)
 		//	printf("Sent %d to %x:%d\n", atoi(buffer), ((struct sockaddr_in *)destaddrp)->sin_addr, ((struct sockaddr_in *)destaddrp)->sin_port);
 		sleep(TX_TIMER);
 	}
+	return NULL;
 }
 
 void get_nbr_info() {
@@ -219,6 +265,7 @@ void get_nbr_info() {
 	char *ip;
 	int i;
 
+	totalnodes = 0;
 	if ((fp = fopen(NODE_CONF_FILE, "r")) == NULL)  
 		perror("get_nbr_config: Open Error");
 
@@ -226,6 +273,7 @@ void get_nbr_info() {
 	while(fgets(line, MAXLINELEN, fp)) {
 		if (strchr(line, '#')) 
 			continue;
+		totalnodes++;
 		if (line[0] == myname) {
 			buffer = strdup(line);
 			token = strtok(buffer, " "); // Tokenized name
@@ -251,6 +299,7 @@ void get_nbr_info() {
 			break;
 		}
 	}
+	print_nbr_table();
 }
 
 void create_socket() {
@@ -280,5 +329,5 @@ int main(int argc, char **argv) {
 	start_communication();
 
 	
-	exit(SUCCESS);
+	return 0;
 }
